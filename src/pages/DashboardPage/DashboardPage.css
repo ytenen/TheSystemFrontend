@@ -1,0 +1,31 @@
+.dashboard-page {
+    min-height: 100vh;
+
+    padding: var(--space-xl);
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.dashboard-page > .system-window {
+    max-width: 900px;
+}
+
+.dashboard-page__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.dashboard-page__content h1 {
+    margin: 0 0 var(--space-sm);
+
+    color: var(--color-system-bright);
+}
+
+.dashboard-page__content p {
+    margin: 0;
+
+    color: var(--color-text-secondary);
+}

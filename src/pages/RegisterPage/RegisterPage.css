@@ -1,0 +1,68 @@
+.register-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 100vh;
+    padding: var(--space-md);
+}
+
+.register-page > .system-window {
+    max-width: 420px;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.register-form__intro {
+    text-align: center;
+}
+
+.register-form__intro h1 {
+    margin: 0;
+
+    color: var(--color-system-bright);
+
+    font-size: 1.6rem;
+    letter-spacing: 0.18em;
+
+    text-shadow:
+            0 0 20px rgba(56, 189, 248, 0.45);
+}
+
+.register-form__intro p {
+    margin: var(--space-sm) 0 0;
+
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+}
+
+.register-form__error {
+    margin: 0;
+
+    color: var(--color-danger);
+
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.register-form__switch {
+    margin: 0;
+
+    color: var(--color-text-secondary);
+
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.register-form__switch a {
+    color: var(--color-system-bright);
+    text-decoration: none;
+}
+
+.register-form__switch a:hover {
+    text-decoration: underline;
+}
