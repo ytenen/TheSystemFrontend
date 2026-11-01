@@ -1,0 +1,238 @@
+.hunter-profile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.hunter-profile__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-lg);
+}
+
+.hunter-profile__label {
+    display: block;
+
+    margin-bottom: var(--space-xs);
+
+    color: var(--color-text-secondary);
+
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+}
+
+.hunter-profile__name {
+    margin: 0;
+
+    color: var(--color-text-primary);
+
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+
+    text-shadow:
+            0 0 20px rgba(56, 189, 248, 0.15);
+}
+
+.hunter-profile__rank {
+    min-width: 90px;
+
+    padding: 12px 18px;
+
+    border: 1px solid var(--color-border);
+
+    background:
+            linear-gradient(
+                    135deg,
+                    rgba(56, 189, 248, 0.12),
+                    rgba(3, 105, 161, 0.04)
+            );
+
+    box-shadow:
+            inset 0 0 20px rgba(56, 189, 248, 0.05),
+            var(--glow-system);
+
+    text-align: center;
+}
+
+.hunter-profile__rank span {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: var(--color-text-secondary);
+
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+}
+
+.hunter-profile__rank strong {
+    color: var(--color-system-bright);
+
+    font-size: 2rem;
+
+    text-shadow:
+            0 0 15px rgba(56, 189, 248, 0.8);
+}
+
+.hunter-profile__level {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+
+    color: var(--color-text-secondary);
+
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+}
+
+.hunter-profile__level strong {
+    color: var(--color-system-bright);
+
+    font-size: 2rem;
+
+    text-shadow:
+            0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.hunter-profile__exp {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.hunter-profile__exp-info {
+    display: flex;
+    justify-content: space-between;
+
+    color: var(--color-text-secondary);
+
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+}
+
+.hunter-profile__exp-track {
+    height: 8px;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(56, 189, 248, 0.25);
+
+    background: rgba(2, 6, 23, 0.9);
+
+    box-shadow:
+            inset 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+.hunter-profile__exp-fill {
+    height: 100%;
+
+    background:
+            linear-gradient(
+                    90deg,
+                    var(--color-system-dark),
+                    var(--color-system),
+                    var(--color-system-bright)
+            );
+
+    box-shadow:
+            0 0 14px rgba(56, 189, 248, 0.8);
+
+    transition:
+            width 400ms ease;
+}
+
+.hunter-profile__divider {
+    height: 1px;
+
+    background:
+            linear-gradient(
+                    90deg,
+                    transparent,
+                    var(--color-border-bright),
+                    transparent
+            );
+
+    box-shadow:
+            0 0 8px rgba(56, 189, 248, 0.25);
+}
+
+.hunter-profile__stats {
+    display: grid;
+
+    grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+    gap: var(--space-sm);
+}
+
+.hunter-profile__stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    min-height: 54px;
+
+    padding: 0 var(--space-md);
+
+    border-left:
+            2px solid var(--color-system-dark);
+
+    background:
+            linear-gradient(
+                    90deg,
+                    rgba(56, 189, 248, 0.08),
+                    rgba(56, 189, 248, 0.01)
+            );
+
+    transition:
+            border-color var(--transition-fast),
+            background var(--transition-fast),
+            box-shadow var(--transition-fast);
+}
+
+.hunter-profile__stat:hover {
+    border-color: var(--color-system-bright);
+
+    background:
+            linear-gradient(
+                    90deg,
+                    rgba(56, 189, 248, 0.15),
+                    rgba(56, 189, 248, 0.02)
+            );
+
+    box-shadow:
+            -4px 0 12px rgba(56, 189, 248, 0.15);
+}
+
+.hunter-profile__stat span {
+    color: var(--color-text-secondary);
+
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
+
+.hunter-profile__stat strong {
+    color: var(--color-text-system);
+
+    font-size: 1.25rem;
+
+    text-shadow:
+            0 0 8px rgba(56, 189, 248, 0.25);
+}
+
+@media (max-width: 650px) {
+    .hunter-profile__stats {
+        grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    }
+
+    .hunter-profile__name {
+        font-size: 2rem;
+    }
+}

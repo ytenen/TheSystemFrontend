@@ -1,31 +1,115 @@
 .dashboard-page {
-    min-height: 100vh;
+    position: relative;
 
-    padding: var(--space-xl);
+    width: 100%;
+    min-height: 100vh;
 
     display: flex;
     justify-content: center;
     align-items: flex-start;
+
+    padding: 70px 24px 40px;
 }
 
-.dashboard-page > .system-window {
-    max-width: 900px;
+/* THE SYSTEM — независимо от основного layout */
+
+.dashboard-page__system-title {
+    position: fixed;
+
+    top: 48px;
+    left: 32px;
+
+    z-index: 20;
+
+    color: var(--color-system-bright);
+
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+
+    text-shadow:
+            0 0 12px rgba(56, 189, 248, 0.35);
 }
+
+/* Кнопка QUESTS — закреплена справа и не двигает профиль */
+
+.dashboard-page__quest-button {
+    position: fixed;
+
+    top: 14px;
+    right: 32px;
+
+    z-index: 20;
+
+    width: 140px;
+}
+
+.dashboard-page__quest-button button {
+    width: 100%;
+}
+
+/* Основное содержимое SystemWindow */
 
 .dashboard-page__content {
     display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
+
+    width: 100%;
 }
 
-.dashboard-page__content h1 {
-    margin: 0 0 var(--space-sm);
+/* Нижняя зона с Logout */
 
-    color: var(--color-system-bright);
+.dashboard-page__actions {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: var(--space-lg);
 }
 
-.dashboard-page__content p {
-    margin: 0;
+.dashboard-page__quest-content {
+    padding-top: var(--space-md);
+}
+
+.dashboard-page__quest-state {
+    padding: var(--space-md) 0;
+}
+
+.dashboard-page__quest-state span {
+    color: var(--color-system);
+
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+}
+
+.dashboard-page__quest-state p {
+    margin-top: var(--space-md);
 
     color: var(--color-text-secondary);
+
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+/* Адаптив */
+
+@media (max-width: 650px) {
+    .dashboard-page {
+        padding:
+                90px
+                var(--space-md)
+                var(--space-lg);
+    }
+
+    .dashboard-page__system-title {
+        top: 28px;
+        left: var(--space-md);
+    }
+
+    .dashboard-page__quest-button {
+        top: 16px;
+        right: var(--space-md);
+
+        width: 125px;
+    }
 }
