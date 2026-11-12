@@ -15,7 +15,7 @@ export function SystemNotification({
                                        title = "SYSTEM NOTICE",
                                        message,
                                        variant = "default",
-                                       duration = 10000,
+                                       duration = 7000,
                                        onClose,
                                    }: SystemNotificationProps) {
     useEffect(() => {

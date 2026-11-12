@@ -6,6 +6,7 @@ interface DailyQuestCardProps {
     quest: Quest;
     updatingAction?: string | null;
     onProgress: (action: string, amount: number) => void;
+    onEdit: () => void;
 }
 
 function formatActionName(action: string) {
@@ -18,6 +19,7 @@ export function DailyQuestCard({
                                    quest,
                                    updatingAction,
                                    onProgress,
+                                    onEdit,
                                }: DailyQuestCardProps) {
     const [expanded, setExpanded] = useState(false);
 
@@ -208,6 +210,17 @@ export function DailyQuestCard({
                                 );
                             }
                         )}
+                    </div>
+
+                    <div className="daily-quest__edit-area">
+                        <button
+                            className="daily-quest__edit-button"
+                            type="button"
+                            disabled={updatingAction !== null && updatingAction !== undefined}
+                            onClick={onEdit}
+                        >
+                            ⚙ EDIT QUEST
+                        </button>
                     </div>
 
                     {quest.completed && (

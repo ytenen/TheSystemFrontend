@@ -484,3 +484,43 @@
       42px 1fr 55px;
     }
 }
+
+
+/* DAILY QUEST SETTINGS */
+
+.daily-quest__edit-area {
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(56, 189, 248, 0.12);
+}
+
+.daily-quest__edit-button {
+    width: 100%;
+    padding: 11px 14px;
+
+    border: 1px solid var(--color-border);
+    background: rgba(56, 189, 248, 0.05);
+
+    color: var(--color-system-bright);
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+
+    cursor: pointer;
+
+    transition:
+            background var(--transition-fast),
+            border-color var(--transition-fast),
+            box-shadow var(--transition-fast);
+}
+
+.daily-quest__edit-button:hover:not(:disabled) {
+    border-color: var(--color-border-bright);
+    background: rgba(56, 189, 248, 0.12);
+    box-shadow: var(--glow-system);
+}
+
+.daily-quest__edit-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
