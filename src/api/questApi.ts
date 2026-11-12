@@ -4,6 +4,7 @@ import type {
     Quest,
     ProgressRequest,
     ProgressResponse,
+    UpdateDailySettingsRequest,
 } from "../types/quest";
 
 export const questApi = {
@@ -24,5 +25,14 @@ export const questApi = {
         );
 
         return response.data;
+    },
+
+    async updateDailySettings(
+        data: UpdateDailySettingsRequest
+    ): Promise<void> {
+        await apiClient.put(
+            "/api/quests/daily/settings",
+            data
+        );
     },
 };

@@ -21,3 +21,10 @@ export interface ProgressResponse {
     hiddenCompleted: boolean;
     message: string;
 }
+
+export type DailySettingsMode = "NOW" | "TOMORROW";
+
+export interface UpdateDailySettingsRequest {
+    targets: Record<string, number>;
+    mode: DailySettingsMode;
+}

@@ -5,7 +5,10 @@ import { playerApi } from "../../api/playerApi";
 import { questApi } from "../../api/questApi";
 
 import type { Player } from "../../types/player";
-import type { Quest } from "../../types/quest";
+import type {
+    Quest,
+    DailySettingsMode,
+} from "../../types/quest";
 
 import { SystemWindow } from "../../components/ui/SystemWindow/SystemWindow";
 import { SystemButton } from "../../components/ui/SystemButton/SystemButton";
@@ -14,32 +17,24 @@ import { SystemNotification } from "../../components/ui/SystemNotification/Syste
 
 import { HunterProfile } from "../../components/player/HunterProfile/HunterProfile";
 import { DailyQuestCard } from "../../components/quest/DailyQuestCard/DailyQuestCard";
+import { DailyQuestSettings } from "../../components/quest/DailyQuestSettings/DailyQuestSettings";
 
 import "./DashboardPage.css";
 
 export function DashboardPage() {
     const navigate = useNavigate();
 
-    const [player, setPlayer] =
-        useState<Player | null>(null);
+    const [player, setPlayer] = useState<Player | null>(null);
+    const [dailyQuest, setDailyQuest] = useState<Quest | null>(null);
 
-    const [dailyQuest, setDailyQuest] =
-        useState<Quest | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [questLoading, setQuestLoading] = useState(false);
 
-    const [loading, setLoading] =
-        useState(true);
+    const [error, setError] = useState("");
+    const [questError, setQuestError] = useState("");
 
-    const [questLoading, setQuestLoading] =
-        useState(false);
-
-    const [error, setError] =
-        useState("");
-
-    const [questError, setQuestError] =
-        useState("");
-
-    const [questsOpen, setQuestsOpen] =
-        useState(false);
+    const [questsOpen, setQuestsOpen] = useState(false);
+    const [editingDaily, setEditingDaily] = useState(false);
 
     const [updatingAction, setUpdatingAction] =
         useState<string | null>(null);
@@ -64,7 +59,7 @@ export function DashboardPage() {
             }
         }
 
-        loadPlayer();
+        void loadPlayer();
     }, []);
 
     async function refreshPlayer() {
@@ -78,21 +73,19 @@ export function DashboardPage() {
         }
     }
 
+    async function refreshDailyQuest() {
+        const quest = await questApi.getDailyQuest();
+        setDailyQuest(quest);
+    }
+
     async function handleOpenQuests() {
         setQuestsOpen(true);
-
-        if (dailyQuest) {
-            return;
-        }
-
+        setEditingDaily(false);
         setQuestLoading(true);
         setQuestError("");
 
         try {
-            const quest =
-                await questApi.getDailyQuest();
-
-            setDailyQuest(quest);
+            await refreshDailyQuest();
         } catch {
             setQuestError(
                 "Failed to establish connection with Quest System"
@@ -106,30 +99,20 @@ export function DashboardPage() {
         action: string,
         amount: number
     ) {
-        if (!dailyQuest) {
+        if (!dailyQuest || updatingAction || editingDaily) {
             return;
         }
 
-        /*
-         * Запоминаем состояние ДО запроса.
-         *
-         * Это нужно, чтобы обычное уведомление
-         * QUEST COMPLETE появилось только один раз:
-         * именно в момент перехода
-         *
-         * false -> true
-         */
         const wasCompleted = dailyQuest.completed;
 
         setUpdatingAction(action);
         setQuestError("");
 
         try {
-            const result =
-                await questApi.updateDailyProgress({
-                    action,
-                    amount,
-                });
+            const result = await questApi.updateDailyProgress({
+                action,
+                amount,
+            });
 
             setDailyQuest((currentQuest) => {
                 if (!currentQuest) {
@@ -143,34 +126,70 @@ export function DashboardPage() {
                 };
             });
 
-            /*
-             * Обычный Daily Quest только что выполнен.
-             */
             if (!wasCompleted && result.completed) {
                 setSystemMessage(
-                    result.message ||
-                    "DAILY QUEST COMPLETE"
+                    result.message || "DAILY QUEST COMPLETE"
                 );
 
                 await refreshPlayer();
             }
 
-            /*
-             * Backend сообщил о выполнении
-             * скрытого квеста.
-             */
             if (result.hiddenCompleted) {
                 setHiddenCompleted(true);
-
                 await refreshPlayer();
             }
         } catch {
-            setQuestError(
-                "Failed to update quest progress"
-            );
+            setQuestError("Failed to update quest progress");
         } finally {
             setUpdatingAction(null);
         }
+    }
+
+    async function handleSaveDailySettings(
+        targets: Record<string, number>,
+        mode: DailySettingsMode
+    ): Promise<void> {
+        if (updatingAction) {
+            throw new Error("Quest progress is being updated");
+        }
+
+        setQuestError("");
+
+        // Если запрос завершится ошибкой, редактор
+        // самостоятельно покажет сообщение.
+        await questApi.updateDailySettings({
+            targets,
+            mode,
+        });
+
+        if (mode === "NOW") {
+            try {
+                // Получаем фактическое состояние с сервера.
+                // Не подменяем его локально.
+                await refreshDailyQuest();
+
+                setSystemMessage(
+                    "DAILY QUEST SETTINGS UPDATED"
+                );
+            } catch {
+                // PUT уже прошёл успешно.
+                // Нельзя повторно отправлять его только
+                // из-за ошибки последующего GET.
+                setDailyQuest(null);
+
+                setQuestError(
+                    "Settings saved, but quest refresh failed. Retry loading."
+                );
+            }
+        } else {
+            // Для TOMORROW сегодняшние цели
+            // и прогресс остаются без изменений.
+            setSystemMessage(
+                "NEW DAILY QUEST SETTINGS SCHEDULED FOR TOMORROW"
+            );
+        }
+
+        setEditingDaily(false);
     }
 
     function handleLogout() {
@@ -197,14 +216,11 @@ export function DashboardPage() {
                 >
                     <div className="dashboard-page__content">
                         <p>
-                            {error ||
-                                "Hunter data unavailable"}
+                            {error || "Hunter data unavailable"}
                         </p>
 
                         <div className="dashboard-page__actions">
-                            <SystemButton
-                                onClick={handleLogout}
-                            >
+                            <SystemButton onClick={handleLogout}>
                                 Return to Login
                             </SystemButton>
                         </div>
@@ -216,15 +232,13 @@ export function DashboardPage() {
 
     return (
         <main className="dashboard-page">
-      <span className="dashboard-page__system-title">
-        THE SYSTEM
-      </span>
+            <span className="dashboard-page__system-title">
+                THE SYSTEM
+            </span>
 
             {!questsOpen && (
                 <div className="dashboard-page__quest-button">
-                    <SystemButton
-                        onClick={handleOpenQuests}
-                    >
+                    <SystemButton onClick={handleOpenQuests}>
                         QUESTS →
                     </SystemButton>
                 </div>
@@ -235,9 +249,7 @@ export function DashboardPage() {
                     <HunterProfile player={player} />
 
                     <div className="dashboard-page__actions">
-                        <SystemButton
-                            onClick={handleLogout}
-                        >
+                        <SystemButton onClick={handleLogout}>
                             Logout
                         </SystemButton>
                     </div>
@@ -246,54 +258,69 @@ export function DashboardPage() {
 
             <SystemDrawer
                 open={questsOpen}
-                title="QUEST LOG"
-                onClose={() =>
-                    setQuestsOpen(false)
+                title={
+                    editingDaily
+                        ? "QUEST SETTINGS"
+                        : "QUEST LOG"
                 }
+                onClose={() => setQuestsOpen(false)}
             >
                 <div className="dashboard-page__quest-content">
-                    {questLoading && (
-                        <div className="dashboard-page__quest-state">
-                            <span>SYSTEM</span>
+                    {editingDaily && dailyQuest ? (
+                        <DailyQuestSettings
+                            targets={dailyQuest.targets}
+                            onSave={handleSaveDailySettings}
+                            onCancel={() =>
+                                setEditingDaily(false)
+                            }
+                        />
+                    ) : (
+                        <>
+                            {questLoading && (
+                                <div className="dashboard-page__quest-state">
+                                    <span>SYSTEM</span>
+                                    <p>Loading quest data...</p>
+                                </div>
+                            )}
 
-                            <p>
-                                Loading quest data...
-                            </p>
-                        </div>
+                            {questError && (
+                                <div
+                                    className="dashboard-page__quest-state"
+                                    role="alert"
+                                >
+                                    <span>SYSTEM ERROR</span>
+                                    <p>{questError}</p>
+                                </div>
+                            )}
+
+                            {!questLoading && dailyQuest && (
+                                <DailyQuestCard
+                                    quest={dailyQuest}
+                                    updatingAction={updatingAction}
+                                    onProgress={handleQuestProgress}
+                                    onEdit={() => {
+                                        setQuestError("");
+                                        setEditingDaily(true);
+                                    }}
+                                />
+                            )}
+
+                            {!questLoading && !dailyQuest && (
+                                <SystemButton
+                                    onClick={handleOpenQuests}
+                                >
+                                    RETRY LOADING
+                                </SystemButton>
+                            )}
+                        </>
                     )}
-
-                    {questError && (
-                        <div className="dashboard-page__quest-state">
-              <span>
-                SYSTEM ERROR
-              </span>
-
-                            <p>
-                                {questError}
-                            </p>
-                        </div>
-                    )}
-
-                    {!questLoading &&
-                        !questError &&
-                        dailyQuest && (
-                            <DailyQuestCard
-                                quest={dailyQuest}
-                                updatingAction={updatingAction}
-                                onProgress={
-                                    handleQuestProgress
-                                }
-                            />
-                        )}
                 </div>
             </SystemDrawer>
 
             <SystemNotification
                 open={systemMessage !== null}
                 message={systemMessage ?? ""}
-                onClose={() =>
-                    setSystemMessage(null)
-                }
+                onClose={() => setSystemMessage(null)}
             />
 
             <SystemNotification
@@ -301,9 +328,7 @@ export function DashboardPage() {
                 title="HIDDEN QUEST COMPLETE"
                 message="OVERACHIEVER"
                 variant="hidden"
-                onClose={() =>
-                    setHiddenCompleted(false)
-                }
+                onClose={() => setHiddenCompleted(false)}
             />
         </main>
     );
