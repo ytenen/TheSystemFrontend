@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import "./SystemDrawer.css";
+import { useI18n } from "../../../i18n/i18n";
 
 interface SystemDrawerProps {
     open: boolean;
@@ -14,6 +15,7 @@ export function SystemDrawer({
                                  children,
                                  onClose,
                              }: SystemDrawerProps) {
+    const { t } = useI18n();
     return (
         <>
             <div
@@ -35,7 +37,7 @@ export function SystemDrawer({
                         className="system-drawer__close"
                         type="button"
                         onClick={onClose}
-                        aria-label="Close"
+                        aria-label={t("app.close")}
                     >
                         ×
                     </button>
