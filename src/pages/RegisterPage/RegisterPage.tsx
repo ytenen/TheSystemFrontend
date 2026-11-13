@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useI18n } from "../../i18n/i18n";
+import type { Language } from "../../i18n/i18n";
 
 import { authApi } from "../../api/authApi";
 import { SystemWindow } from "../../components/ui/SystemWindow/SystemWindow";
@@ -12,22 +13,22 @@ import "./RegisterPage.css";
 
 export function RegisterPage() {
     const navigate = useNavigate();
-    const { t } = useI18n();
+    const { t, language } = useI18n();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
-    const [error, setError] = useState("");
+    const [error, setError] = useState<{ language: Language; value: string } | null>(null);
     const [loading, setLoading] = useState(false);
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        setError("");
+        setError(null);
 
         if (password !== confirmPassword) {
-            setError(t("auth.passwordMismatch"));
+            setError({ language, value: t("auth.passwordMismatch") });
             return;
         }
 
@@ -44,13 +45,14 @@ export function RegisterPage() {
             navigate("/dashboard");
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                setError(
-                    error.response?.data?.message ??
+                setError({
+                    language,
+                    value: error.response?.data?.message ??
                     error.response?.data?.error ??
-                    t("auth.failed")
-                );
+                    t("auth.failed"),
+                });
             } else {
-                setError(t("auth.unexpected"));
+                setError({ language, value: t("auth.unexpected") });
             }
         } finally {
             setLoading(false);
@@ -104,9 +106,9 @@ export function RegisterPage() {
                         autoComplete="new-password"
                     />
 
-                    {error && (
+                    {error?.language === language && (
                         <p className="register-form__error">
-                            {error}
+                            {error.value}
                         </p>
                     )}
 
