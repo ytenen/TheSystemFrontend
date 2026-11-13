@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { Quest } from "../../../types/quest";
+import { useI18n } from "../../../i18n/i18n";
+import type { TranslationKey } from "../../../i18n/i18n";
 import "./DailyQuestCard.css";
 
 interface DailyQuestCardProps {
@@ -9,11 +11,16 @@ interface DailyQuestCardProps {
     onEdit: () => void;
 }
 
-function formatActionName(action: string) {
-    return action
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
+const knownExercises: Record<string, TranslationKey> = {
+    pushups: "exercise.pushups",
+    squats: "exercise.squats",
+    plank: "exercise.plank",
+    pullups: "exercise.pullups",
+    situps: "exercise.situps",
+    running: "exercise.running",
+    walking: "exercise.walking",
+    burpees: "exercise.burpees",
+};
 
 export function DailyQuestCard({
                                    quest,
@@ -21,6 +28,7 @@ export function DailyQuestCard({
                                    onProgress,
                                     onEdit,
                                }: DailyQuestCardProps) {
+    const { t } = useI18n();
     const [expanded, setExpanded] = useState(false);
 
     const [amounts, setAmounts] = useState<
@@ -67,10 +75,11 @@ export function DailyQuestCard({
                     setExpanded((current) => !current)
                 }
                 aria-expanded={expanded}
+                aria-label={t("quest.toggle")}
             >
                 <div className="daily-quest__toggle-info">
           <span className="daily-quest__type">
-            DAILY QUEST
+            {t("quest.daily")}
           </span>
 
                     <h3>{quest.title}</h3>
@@ -79,12 +88,12 @@ export function DailyQuestCard({
                 <div className="daily-quest__toggle-right">
                     {quest.completed && (
                         <span className="daily-quest__status">
-              COMPLETE
+              {t("quest.complete")}
             </span>
                     )}
 
                     <span className="daily-quest__reward">
-            +{quest.expReward} EXP
+            +{quest.expReward} {t("quest.exp")}
           </span>
 
                     <span
@@ -137,7 +146,7 @@ export function DailyQuestCard({
                                     >
                                         <div className="daily-quest__objective-info">
                       <span>
-                        {formatActionName(action)}
+                        {knownExercises[action] ? t(knownExercises[action]) : action}
                       </span>
 
                                             <span>
@@ -171,7 +180,7 @@ export function DailyQuestCard({
                                                 type="number"
                                                 min="1"
                                                 step="1"
-                                                placeholder="Amount"
+                                                placeholder={t("quest.amount")}
                                                 value={inputValue}
                                                 disabled={updating}
                                                 onChange={(event) =>
@@ -203,7 +212,7 @@ export function DailyQuestCard({
                                                     handleAddAmount(action)
                                                 }
                                             >
-                                                ADD
+                                                {t("quest.add")}
                                             </button>
                                         </div>
                                     </div>
@@ -219,13 +228,13 @@ export function DailyQuestCard({
                             disabled={updatingAction !== null && updatingAction !== undefined}
                             onClick={onEdit}
                         >
-                            ⚙ EDIT QUEST
+                            {t("quest.edit")}
                         </button>
                     </div>
 
                     {quest.completed && (
                         <div className="daily-quest__complete">
-                            QUEST COMPLETE
+                            {t("quest.questComplete")}
                         </div>
                     )}
                 </div>

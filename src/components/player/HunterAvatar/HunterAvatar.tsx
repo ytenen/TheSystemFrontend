@@ -1,23 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { playerApi } from "../../../api/playerApi";
+import { useI18n } from "../../../i18n/i18n";
+import type { TranslationKey } from "../../../i18n/i18n";
 import { AvatarCropModal } from "../AvatarCropModal/AvatarCropModal";
 import "./HunterAvatar.css";
 
 interface Props {
     avatarUrl: string | null;
     onChanged: () => Promise<void>;
-    onNotice: (message: string) => void;
+    onNotice: (key: TranslationKey) => void;
 }
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
 export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
+    const { t } = useI18n();
     const fileInput = useRef<HTMLInputElement>(null);
     const [displayUrl, setDisplayUrl] = useState<string | null>(null);
     const [revision, setRevision] = useState(0);
     const [file, setFile] = useState<File | null>(null);
     const [busy, setBusy] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState<TranslationKey | "">("");
     const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -33,7 +36,7 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
                     setDisplayUrl(objectUrl);
                 })
                 .catch(() => {
-                    if (!cancelled) setError("Could not load avatar");
+                    if (!cancelled) setError("avatar.loadFailed");
                 });
         }
 
@@ -46,11 +49,11 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
     function selectFile(selected: File) {
         setError("");
         if (!["image/jpeg", "image/png"].includes(selected.type)) {
-            setError("Only PNG and JPEG images are supported");
+            setError("avatar.onlyFormats");
             return;
         }
         if (selected.size === 0 || selected.size > MAX_BYTES) {
-            setError("Image must be between 1 byte and 10 MB");
+            setError("avatar.size");
             return;
         }
         setMenuOpen(false);
@@ -65,10 +68,10 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
             setRevision(value => value + 1);
             setFile(null);
             setMenuOpen(false);
-            onNotice("AVATAR UPDATED");
+            onNotice("avatar.updated");
             await onChanged();
         } catch {
-            setError("Failed to upload avatar");
+            setError("avatar.uploadFailed");
             throw new Error("Avatar upload failed");
         } finally {
             setBusy(false);
@@ -83,10 +86,10 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
             await playerApi.deleteAvatar();
             setDisplayUrl(null);
             setMenuOpen(false);
-            onNotice("AVATAR REMOVED");
+            onNotice("avatar.removed");
             await onChanged();
         } catch {
-            setError("Could not remove avatar");
+            setError("avatar.removeFailed");
         } finally {
             setBusy(false);
         }
@@ -96,9 +99,9 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
         <div className="hunter-avatar">
             <div className={`hunter-avatar__frame${menuOpen ? " hunter-avatar__frame--menu-open" : ""}`}>
                 {displayUrl ? (
-                    <img src={displayUrl} alt="Hunter avatar" className="hunter-avatar__image" />
+                    <img src={displayUrl} alt={t("avatar.image")} className="hunter-avatar__image" />
                 ) : (
-                    <span className="hunter-avatar__placeholder" role="img" aria-label="No avatar">◇</span>
+                    <span className="hunter-avatar__placeholder" role="img" aria-label={t("avatar.noAvatar")}>◇</span>
                 )}
 
                 <div className="hunter-avatar__overlay">
@@ -107,10 +110,10 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
                         className="hunter-avatar__edit"
                         disabled={busy}
                         onClick={() => fileInput.current?.click()}
-                        aria-label={avatarUrl ? "Change avatar" : "Upload avatar"}
+                        aria-label={avatarUrl ? t("avatar.changeAria") : t("avatar.uploadAria")}
                     >
                         <span className="hunter-avatar__edit-icon" aria-hidden="true">✎</span>
-                        <span>{avatarUrl ? "CHANGE" : "UPLOAD"}</span>
+                        <span>{avatarUrl ? t("avatar.change") : t("avatar.upload")}</span>
                     </button>
                     {avatarUrl && (
                         <button
@@ -118,18 +121,18 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
                             className="hunter-avatar__remove"
                             disabled={busy}
                             onClick={() => void remove()}
-                            aria-label="Remove avatar"
+                            aria-label={t("avatar.removeAria")}
                         >
-                            REMOVE
+                            {t("avatar.remove")}
                         </button>
                     )}
                 </div>
-                {busy && <span className="hunter-avatar__loading">UPDATING...</span>}
+                {busy && <span className="hunter-avatar__loading">{t("avatar.updating")}</span>}
             </div>
             <button
                 type="button"
                 className="hunter-avatar__mobile-toggle"
-                aria-label="Avatar actions"
+                aria-label={t("avatar.actions")}
                 aria-expanded={menuOpen}
                 disabled={busy}
                 onClick={() => setMenuOpen(value => !value)}
@@ -141,7 +144,7 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
                 className="hunter-avatar__file"
                 type="file"
                 accept="image/png,image/jpeg"
-                aria-label="Choose avatar image"
+                aria-label={t("avatar.choose")}
                 disabled={busy}
                 onChange={event => {
                     const selected = event.currentTarget.files?.[0];
@@ -149,7 +152,7 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
                     event.currentTarget.value = "";
                 }}
             />
-            {error && <p role="alert" className="hunter-avatar__error">{error}</p>}
+            {error && <p role="alert" className="hunter-avatar__error">{t(error)}</p>}
             {file && (
                 <AvatarCropModal file={file} onCancel={() => setFile(null)} onSave={upload} />
             )}
