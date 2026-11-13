@@ -140,3 +140,25 @@
     .hunter-avatar__frame { height: 100px; }
     .hunter-avatar__overlay button { padding: 3px; font-size: .55rem; }
 }
+
+/* Keyboard access to the hover controls */
+.hunter-avatar:focus-within .hunter-avatar__overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+@media (hover: hover) {
+    .hunter-avatar__mobile-toggle {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .hunter-avatar__mobile-toggle:focus-visible {
+        opacity: 1;
+        pointer-events: auto;
+        outline: 2px solid var(--color-system-bright);
+        outline-offset: 2px;
+    }
+}
