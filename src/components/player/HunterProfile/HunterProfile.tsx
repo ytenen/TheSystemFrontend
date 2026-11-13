@@ -1,23 +1,26 @@
 import type { Player } from "../../../types/player";
+import { useI18n } from "../../../i18n/i18n";
+import type { TranslationKey } from "../../../i18n/i18n";
 import { HunterAvatar } from "../HunterAvatar/HunterAvatar";
 import "./HunterProfile.css";
 
 interface HunterProfileProps {
     player: Player;
     onAvatarChanged: () => Promise<void>;
-    onAvatarNotice: (message: string) => void;
+    onAvatarNotice: (key: TranslationKey) => void;
 }
 
-const statLabels = {
-    strength: "STRENGTH",
-    agility: "AGILITY",
-    vitality: "VITALITY",
-    intelligence: "INTELLIGENCE",
-    perception: "PERCEPTION",
-    will: "WILL",
+const statLabels: Record<string, TranslationKey> = {
+    strength: "stats.strength",
+    agility: "stats.agility",
+    vitality: "stats.vitality",
+    intelligence: "stats.intelligence",
+    perception: "stats.perception",
+    will: "stats.will",
 };
 
 export function HunterProfile({ player, onAvatarChanged, onAvatarNotice }: HunterProfileProps) {
+    const { t } = useI18n();
     const currentLevelExp = player.level * 1000 - player.expToNextLevel;
     const expRequired = player.level * 1000;
 
@@ -32,25 +35,25 @@ export function HunterProfile({ player, onAvatarChanged, onAvatarNotice }: Hunte
                 <div className="hunter-profile__identity">
                     <HunterAvatar avatarUrl={player.avatarUrl} onChanged={onAvatarChanged} onNotice={onAvatarNotice} />
                     <div className="hunter-profile__identity-info">
-                        <span className="hunter-profile__label">HUNTER</span>
+                        <span className="hunter-profile__label">{t("app.hunter")}</span>
                         <h1 className="hunter-profile__name">{player.name}</h1>
                     </div>
                 </div>
 
                 <div className="hunter-profile__rank">
-                    <span>RANK</span>
+                    <span>{t("dashboard.rank")}</span>
                     <strong>{player.rank}</strong>
                 </div>
             </div>
 
             <div className="hunter-profile__level">
-                <span>LEVEL</span>
+                <span>{t("dashboard.level")}</span>
                 <strong>{player.level}</strong>
             </div>
 
             <div className="hunter-profile__exp">
                 <div className="hunter-profile__exp-info">
-                    <span>EXP</span>
+                    <span>{t("dashboard.exp")}</span>
 
                     <span>
             {currentLevelExp} / {expRequired}
@@ -71,7 +74,7 @@ export function HunterProfile({ player, onAvatarChanged, onAvatarNotice }: Hunte
                 {Object.entries(player.stats).map(([key, value]) => (
                     <div className="hunter-profile__stat" key={key}>
             <span>
-              {statLabels[key as keyof typeof statLabels]}
+              {statLabels[key] ? t(statLabels[key]) : key}
             </span>
 
                         <strong>{value}</strong>
