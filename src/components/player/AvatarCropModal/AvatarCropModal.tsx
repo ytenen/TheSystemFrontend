@@ -27,19 +27,21 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
         return () => URL.revokeObjectURL(url);
     }, [file]);
 
-    // The image always fills the square, including when zooming or dragging.
+    // At 100% the image fills the crop square. Below 100%, empty space is black.
     const baseScale = dimensions.width && dimensions.height
         ? Math.max(VIEW / dimensions.width, VIEW / dimensions.height)
         : 1;
     const drawnWidth = dimensions.width * baseScale * zoom;
     const drawnHeight = dimensions.height * baseScale * zoom;
-    const boundX = Math.max(0, (drawnWidth - VIEW) / 2);
-    const boundY = Math.max(0, (drawnHeight - VIEW) / 2);
+    // When smaller than the viewport, let the whole image move inside it.
+    // When larger, keep enough of the image covering each axis.
+    const boundX = Math.abs(drawnWidth - VIEW) / 2;
+    const boundY = Math.abs(drawnHeight - VIEW) / 2;
     const x = Math.max(-boundX, Math.min(boundX, offset.x));
     const y = Math.max(-boundY, Math.min(boundY, offset.y));
 
     function changeZoom(next: number) {
-        setZoom(Math.max(1, Math.min(4, next)));
+        setZoom(Math.max(0.25, Math.min(4, next)));
     }
 
     function pointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -82,10 +84,9 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
 
             const scale = SIZE / VIEW;
             const format = file.type === "image/png" ? "image/png" : "image/jpeg";
-            if (format === "image/jpeg") {
-                context.fillStyle = "#ffffff";
-                context.fillRect(0, 0, SIZE, SIZE);
-            }
+            // Paint blank areas black in the saved avatar too, even for PNG.
+            context.fillStyle = "#000000";
+            context.fillRect(0, 0, SIZE, SIZE);
             context.drawImage(
                 image,
                 (VIEW / 2 - drawnWidth / 2 + x) * scale,
@@ -145,7 +146,7 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
                 </div>
                 <label className="avatar-crop__zoom">
                     <span>ZOOM</span>
-                    <input type="range" min="1" max="4" step="0.01" value={zoom}
+                    <input type="range" min="0.25" max="4" step="0.01" value={zoom}
                         onChange={event => changeZoom(Number(event.target.value))} disabled={saving || !dimensions.width} />
                     <span>{Math.round(zoom * 100)}%</span>
                 </label>
