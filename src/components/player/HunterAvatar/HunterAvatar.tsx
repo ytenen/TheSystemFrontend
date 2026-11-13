@@ -20,7 +20,7 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
     const [revision, setRevision] = useState(0);
     const [file, setFile] = useState<File | null>(null);
     const [busy, setBusy] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState<TranslationKey | "">("");
     const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -36,7 +36,7 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
                     setDisplayUrl(objectUrl);
                 })
                 .catch(() => {
-                    if (!cancelled) setError(t("avatar.loadFailed"));
+                    if (!cancelled) setError("avatar.loadFailed");
                 });
         }
 
@@ -49,11 +49,11 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
     function selectFile(selected: File) {
         setError("");
         if (!["image/jpeg", "image/png"].includes(selected.type)) {
-            setError(t("avatar.onlyFormats"));
+            setError("avatar.onlyFormats");
             return;
         }
         if (selected.size === 0 || selected.size > MAX_BYTES) {
-            setError(t("avatar.size"));
+            setError("avatar.size");
             return;
         }
         setMenuOpen(false);
@@ -71,7 +71,7 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
             onNotice("avatar.updated");
             await onChanged();
         } catch {
-            setError(t("avatar.uploadFailed"));
+            setError("avatar.uploadFailed");
             throw new Error("Avatar upload failed");
         } finally {
             setBusy(false);
@@ -89,7 +89,7 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
             onNotice("avatar.removed");
             await onChanged();
         } catch {
-            setError(t("avatar.removeFailed"));
+            setError("avatar.removeFailed");
         } finally {
             setBusy(false);
         }
@@ -152,7 +152,7 @@ export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
                     event.currentTarget.value = "";
                 }}
             />
-            {error && <p role="alert" className="hunter-avatar__error">{error}</p>}
+            {error && <p role="alert" className="hunter-avatar__error">{t(error)}</p>}
             {file && (
                 <AvatarCropModal file={file} onCancel={() => setFile(null)} onSave={upload} />
             )}
