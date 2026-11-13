@@ -139,9 +139,7 @@ export function DailyQuestSettings({
             const target = Number(exercise.target);
 
             if (!action || action.length > 100) {
-                setError(
-                    t("settings.nameLength")
-                );
+                setError("settings.nameLength");
                 return null;
             }
 
@@ -151,9 +149,7 @@ export function DailyQuestSettings({
                 target < 1 ||
                 target > 100000
             ) {
-                setError(
-                    t("settings.targetRange")
-                );
+                setError("settings.targetRange");
                 return null;
             }
 
