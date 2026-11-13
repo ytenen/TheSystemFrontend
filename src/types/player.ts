@@ -15,4 +15,5 @@ export interface Player {
     expToNextLevel: number;
     rank: string;
     stats: PlayerStats;
+    avatarUrl: string | null;
 }

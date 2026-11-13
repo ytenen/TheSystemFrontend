@@ -1,0 +1,164 @@
+.hunter-avatar {
+    position: relative;
+    width: 124px;
+    flex-shrink: 0;
+}
+
+.hunter-avatar__frame {
+    position: relative;
+    width: 124px;
+    height: 124px;
+    overflow: hidden;
+    border: 1px solid var(--color-system);
+    background: radial-gradient(circle, rgba(56,189,248,.18), #020617);
+    box-shadow: 0 0 15px rgba(56,189,248,.2);
+}
+
+.hunter-avatar__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hunter-avatar__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 4rem;
+    color: var(--color-system-bright);
+}
+
+.hunter-avatar__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(2, 10, 24, .82);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+.hunter-avatar__frame:hover .hunter-avatar__overlay,
+.hunter-avatar__frame:focus-within .hunter-avatar__overlay,
+.hunter-avatar__frame--menu-open .hunter-avatar__overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.hunter-avatar__overlay button {
+    width: 100%;
+    min-height: 29px;
+    padding: 5px 6px;
+    border: 1px solid var(--color-system);
+    background: rgba(56, 189, 248, .11);
+    color: var(--color-system-bright);
+    font: inherit;
+    font-size: .63rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease;
+}
+
+.hunter-avatar__overlay button:hover:not(:disabled),
+.hunter-avatar__overlay button:focus-visible {
+    border-color: var(--color-system-bright);
+    background: rgba(56, 189, 248, .25);
+}
+
+.hunter-avatar__overlay button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.hunter-avatar__edit-icon { margin-right: 4px; font-size: 1rem; }
+
+.hunter-avatar__overlay .hunter-avatar__remove {
+    border-color: rgba(248, 113, 113, .55);
+    color: #fca5a5;
+    background: rgba(248, 113, 113, .07);
+}
+
+.hunter-avatar__overlay .hunter-avatar__remove:hover:not(:disabled) {
+    border-color: #f87171;
+    background: rgba(248, 113, 113, .19);
+}
+
+.hunter-avatar__loading {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    background: rgba(2, 6, 23, .88);
+    color: var(--color-system-bright);
+    font-size: .65rem;
+}
+
+.hunter-avatar__file { display: none; }
+
+.hunter-avatar__mobile-toggle {
+    display: none;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 1;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--color-system);
+    background: rgba(2, 6, 23, .82);
+    color: var(--color-system-bright);
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.hunter-avatar__error {
+    margin: 8px 0 0;
+    color: #f87171;
+    font-size: .68rem;
+    overflow-wrap: anywhere;
+}
+
+@media (hover: none) {
+    .hunter-avatar__mobile-toggle { display: block; }
+    .hunter-avatar__overlay { padding-top: 34px; gap: 5px; }
+    .hunter-avatar__overlay button { min-height: 24px; }
+}
+
+@media (max-width: 520px) {
+    .hunter-avatar, .hunter-avatar__frame { width: 100px; }
+    .hunter-avatar__frame { height: 100px; }
+    .hunter-avatar__overlay button { padding: 3px; font-size: .55rem; }
+}
+
+/* Keyboard access to the hover controls */
+.hunter-avatar:focus-within .hunter-avatar__overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+@media (hover: hover) {
+    .hunter-avatar__mobile-toggle {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .hunter-avatar__mobile-toggle:focus-visible {
+        opacity: 1;
+        pointer-events: auto;
+        outline: 2px solid var(--color-system-bright);
+        outline-offset: 2px;
+    }
+}
