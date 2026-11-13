@@ -5,6 +5,7 @@ import "./HunterProfile.css";
 interface HunterProfileProps {
     player: Player;
     onAvatarChanged: () => Promise<void>;
+    onAvatarNotice: (message: string) => void;
 }
 
 const statLabels = {
@@ -16,7 +17,7 @@ const statLabels = {
     will: "WILL",
 };
 
-export function HunterProfile({ player, onAvatarChanged }: HunterProfileProps) {
+export function HunterProfile({ player, onAvatarChanged, onAvatarNotice }: HunterProfileProps) {
     const currentLevelExp = player.level * 1000 - player.expToNextLevel;
     const expRequired = player.level * 1000;
 
@@ -29,7 +30,7 @@ export function HunterProfile({ player, onAvatarChanged }: HunterProfileProps) {
         <section className="hunter-profile">
             <div className="hunter-profile__header">
                 <div className="hunter-profile__identity">
-                    <HunterAvatar avatarUrl={player.avatarUrl} onChanged={onAvatarChanged} />
+                    <HunterAvatar avatarUrl={player.avatarUrl} onChanged={onAvatarChanged} onNotice={onAvatarNotice} />
                     <div className="hunter-profile__identity-info">
                         <span className="hunter-profile__label">HUNTER</span>
                         <h1 className="hunter-profile__name">{player.name}</h1>
