@@ -1,6 +1,7 @@
 
 import { useRef, useState } from "react";
 import { useI18n } from "../../../i18n/i18n";
+import type { TranslationKey } from "../../../i18n/i18n";
 
 import { SystemButton } from "../../ui/SystemButton/SystemButton";
 import "./DailyQuestSettings.css";
@@ -44,7 +45,7 @@ export function DailyQuestSettings({
 
     const [mode, setMode] = useState<UpdateMode>("TOMORROW");
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState<TranslationKey | "">("");
 
     function updateExercise(
         id: number,
@@ -93,7 +94,7 @@ export function DailyQuestSettings({
 
     function addExercise() {
         if (exercises.length >= 20) {
-            setError(t("settings.maxExercises"));
+            setError("settings.maxExercises");
             return;
         }
 
@@ -113,7 +114,7 @@ export function DailyQuestSettings({
 
     function removeExercise(id: number) {
         if (exercises.length <= 1) {
-            setError(t("settings.atLeastOne"));
+            setError("settings.atLeastOne");
             return;
         }
 
@@ -126,7 +127,7 @@ export function DailyQuestSettings({
 
     function validate(): Record<string, number> | null {
         if (exercises.length < 1 || exercises.length > 20) {
-            setError(t("settings.rangeExercises"));
+            setError("settings.rangeExercises");
             return null;
         }
 
@@ -157,7 +158,7 @@ export function DailyQuestSettings({
             }
 
             if (usedNames.has(action)) {
-                setError(t("settings.uniqueNames"));
+                setError("settings.uniqueNames");
                 return null;
             }
 
@@ -181,7 +182,7 @@ export function DailyQuestSettings({
         try {
             await onSave(validatedTargets, mode);
         } catch {
-            setError(t("settings.saveFailed"));
+            setError("settings.saveFailed");
         } finally {
             setSaving(false);
         }
@@ -324,7 +325,7 @@ export function DailyQuestSettings({
 
             {error && (
                 <p className="daily-settings__error" role="alert">
-                    {error}
+                    {t(error)}
                 </p>
             )}
 
