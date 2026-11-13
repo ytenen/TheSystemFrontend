@@ -236,3 +236,14 @@
         font-size: 2rem;
     }
 }
+/* Hunter identity / portrait */
+.hunter-profile__identity { display:flex; align-items:flex-start; gap:var(--space-lg); flex:1; min-width:0; }
+.hunter-profile__identity-info { min-width:0; flex:1; padding-top:6px; }
+.hunter-profile__identity-info .hunter-profile__name { overflow-wrap:anywhere; }
+@media(max-width:650px) {
+    .hunter-profile__header { gap:var(--space-sm); }
+    .hunter-profile__identity { gap:var(--space-sm); }
+    .hunter-profile__rank { min-width:65px; padding:10px; }
+    .hunter-profile__rank strong { font-size:1.5rem; }
+    .hunter-profile__identity-info .hunter-profile__name { font-size:clamp(1.1rem,4vw,2rem); }
+}
