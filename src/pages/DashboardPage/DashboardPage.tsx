@@ -246,7 +246,7 @@ export function DashboardPage() {
 
             <SystemWindow title="HUNTER STATUS">
                 <div className="dashboard-page__content">
-                    <HunterProfile player={player} />
+                    <HunterProfile player={player} onAvatarChanged={refreshPlayer} />
 
                     <div className="dashboard-page__actions">
                         <SystemButton onClick={handleLogout}>
