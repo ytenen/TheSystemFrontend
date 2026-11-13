@@ -81,6 +81,11 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
             if (!context) throw new Error("Canvas unavailable");
 
             const scale = SIZE / VIEW;
+            const format = file.type === "image/png" ? "image/png" : "image/jpeg";
+            if (format === "image/jpeg") {
+                context.fillStyle = "#ffffff";
+                context.fillRect(0, 0, SIZE, SIZE);
+            }
             context.drawImage(
                 image,
                 (VIEW / 2 - drawnWidth / 2 + x) * scale,
@@ -89,9 +94,9 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
                 drawnHeight * scale
             );
             const blob = await new Promise<Blob>((resolve, reject) => {
-                canvas.toBlob(value => value ? resolve(value) : reject(new Error("Export failed")), "image/jpeg", 0.9);
+                canvas.toBlob(value => value ? resolve(value) : reject(new Error("Export failed")), format, 0.9);
             });
-            await onSave(new File([blob], "hunter-avatar.jpg", { type: "image/jpeg" }));
+            await onSave(new File([blob], format === "image/png" ? "hunter-avatar.png" : "hunter-avatar.jpg", { type: format }));
         } catch {
             setError("Failed to crop or upload avatar");
         } finally {
