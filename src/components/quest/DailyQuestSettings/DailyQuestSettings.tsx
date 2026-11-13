@@ -1,5 +1,6 @@
 
 import { useRef, useState } from "react";
+import { useI18n } from "../../../i18n/i18n";
 
 import { SystemButton } from "../../ui/SystemButton/SystemButton";
 import "./DailyQuestSettings.css";
@@ -27,6 +28,7 @@ export function DailyQuestSettings({
                                        onSave,
                                        onCancel,
                                    }: DailyQuestSettingsProps) {
+    const { t } = useI18n();
     const nextId = useRef(Object.keys(targets).length);
 
     const [exercises, setExercises] = useState<Exercise[]>(
@@ -91,7 +93,7 @@ export function DailyQuestSettings({
 
     function addExercise() {
         if (exercises.length >= 20) {
-            setError("Maximum 20 exercises allowed");
+            setError(t("settings.maxExercises"));
             return;
         }
 
@@ -111,7 +113,7 @@ export function DailyQuestSettings({
 
     function removeExercise(id: number) {
         if (exercises.length <= 1) {
-            setError("At least one exercise is required");
+            setError(t("settings.atLeastOne"));
             return;
         }
 
@@ -124,7 +126,7 @@ export function DailyQuestSettings({
 
     function validate(): Record<string, number> | null {
         if (exercises.length < 1 || exercises.length > 20) {
-            setError("You must have 1 to 20 exercises");
+            setError(t("settings.rangeExercises"));
             return null;
         }
 
@@ -137,7 +139,7 @@ export function DailyQuestSettings({
 
             if (!action || action.length > 100) {
                 setError(
-                    "Exercise name must contain 1 to 100 characters"
+                    t("settings.nameLength")
                 );
                 return null;
             }
@@ -149,13 +151,13 @@ export function DailyQuestSettings({
                 target > 100000
             ) {
                 setError(
-                    "Exercise target must be between 1 and 100000"
+                    t("settings.targetRange")
                 );
                 return null;
             }
 
             if (usedNames.has(action)) {
-                setError("Exercise names must be unique");
+                setError(t("settings.uniqueNames"));
                 return null;
             }
 
@@ -179,7 +181,7 @@ export function DailyQuestSettings({
         try {
             await onSave(validatedTargets, mode);
         } catch {
-            setError("Failed to save Daily Quest settings");
+            setError(t("settings.saveFailed"));
         } finally {
             setSaving(false);
         }
@@ -188,8 +190,8 @@ export function DailyQuestSettings({
     return (
         <section className="daily-settings">
             <header className="daily-settings__header">
-                <h3>DAILY QUEST SETTINGS</h3>
-                <p>Customize your daily training objectives</p>
+                <h3>{t("settings.heading")}</h3>
+                <p>{t("settings.intro")}</p>
             </header>
 
             <div className="daily-settings__exercises">
@@ -199,12 +201,12 @@ export function DailyQuestSettings({
                         key={exercise.id}
                     >
                         <span className="daily-settings__number">
-                            OBJECTIVE {index + 1}
+                            {t("quest.objective", { number: index + 1 })}
                         </span>
 
                         <SystemInput
-                            label="Exercise name"
-                            placeholder="e.g. pushups"
+                            label={t("settings.exercise")}
+                            placeholder={t("settings.exerciseExample")}
                             value={exercise.action}
                             maxLength={100}
                             disabled={saving}
@@ -220,14 +222,14 @@ export function DailyQuestSettings({
 
                         <div className="daily-settings__target">
     <span className="daily-settings__target-label">
-        TARGET
+        {t("settings.target")}
     </span>
 
                             <div className="daily-settings__target-controls">
                                 <button
                                     type="button"
                                     className="daily-settings__stepper"
-                                    aria-label="Decrease target"
+                                    aria-label={t("settings.decrease")}
                                     disabled={saving || Number(exercise.target) <= 1}
                                     onClick={() => changeTarget(exercise.id, -1)}
                                 >
@@ -254,7 +256,7 @@ export function DailyQuestSettings({
                                 <button
                                     type="button"
                                     className="daily-settings__stepper"
-                                    aria-label="Increase target"
+                                    aria-label={t("settings.increase")}
                                     disabled={saving || Number(exercise.target) >= 100000}
                                     onClick={() => changeTarget(exercise.id, 1)}
                                 >
@@ -272,7 +274,7 @@ export function DailyQuestSettings({
                                 removeExercise(exercise.id)
                             }
                         >
-                            REMOVE
+                            {t("settings.remove")}
                         </button>
                     </div>
                 ))}
@@ -283,11 +285,11 @@ export function DailyQuestSettings({
                 onClick={addExercise}
                 disabled={saving || exercises.length >= 20}
             >
-                + ADD EXERCISE
+                {t("settings.addExercise")}
             </SystemButton>
 
             <div className="daily-settings__mode">
-                <h4>APPLY CHANGES</h4>
+                <h4>{t("settings.apply")}</h4>
 
                 <label>
                     <input
@@ -298,7 +300,7 @@ export function DailyQuestSettings({
                         disabled={saving}
                         onChange={() => setMode("NOW")}
                     />
-                    NOW — Reset current progress
+                    {t("settings.now")}
                 </label>
 
                 <label>
@@ -310,13 +312,13 @@ export function DailyQuestSettings({
                         disabled={saving}
                         onChange={() => setMode("TOMORROW")}
                     />
-                    TOMORROW — Keep today's progress
+                    {t("settings.tomorrow")}
                 </label>
             </div>
 
             {mode === "NOW" && (
                 <p className="daily-settings__warning">
-                    WARNING: Current quest progress will be reset.
+                    {t("settings.warning")}
                 </p>
             )}
 
@@ -332,7 +334,7 @@ export function DailyQuestSettings({
                     disabled={saving}
                     onClick={onCancel}
                 >
-                    CANCEL
+                    {t("settings.cancel")}
                 </SystemButton>
 
                 <SystemButton
@@ -340,7 +342,7 @@ export function DailyQuestSettings({
                     loading={saving}
                     onClick={handleSave}
                 >
-                    SAVE SETTINGS
+                    {t("settings.save")}
                 </SystemButton>
             </div>
         </section>
