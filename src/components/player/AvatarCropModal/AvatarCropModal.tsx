@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent, WheelEvent } from "react";
 import "./AvatarCropModal.css";
 import { useI18n } from "../../../i18n/i18n";
+import type { TranslationKey } from "../../../i18n/i18n";
 
 interface Props {
     file: File;
@@ -19,7 +20,7 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
     const [zoom, setZoom] = useState(1);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState<TranslationKey | "">("");
     const imageRef = useRef<HTMLImageElement>(null);
     const dragRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
 
@@ -101,7 +102,7 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
             });
             await onSave(new File([blob], format === "image/png" ? "hunter-avatar.png" : "hunter-avatar.jpg", { type: format }));
         } catch {
-            setError(t("crop.error"));
+            setError("crop.error");
         } finally {
             setSaving(false);
         }
@@ -152,7 +153,7 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
                         onChange={event => changeZoom(Number(event.target.value))} disabled={saving || !dimensions.width} />
                     <span>{Math.round(zoom * 100)}%</span>
                 </label>
-                {error && <p className="avatar-crop__error" role="alert">{error}</p>}
+                {error && <p className="avatar-crop__error" role="alert">{t(error)}</p>}
                 <div className="avatar-crop__actions">
                     <button type="button" onClick={onCancel} disabled={saving}>{t("crop.cancel")}</button>
                     <button type="button" onClick={() => void save()} disabled={saving || !dimensions.width}>
