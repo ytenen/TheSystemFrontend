@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useI18n } from "../../i18n/i18n";
 
 import { authApi } from "../../api/authApi";
 import { SystemWindow } from "../../components/ui/SystemWindow/SystemWindow";
@@ -11,6 +12,7 @@ import "./LoginPage.css";
 
 export function LoginPage() {
     const navigate = useNavigate();
+    const { t } = useI18n();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -43,10 +45,10 @@ export function LoginPage() {
                 setError(
                     error.response?.data?.message ??
                     error.response?.data?.error ??
-                    "Invalid username or password"
+                    t("auth.invalid")
                 );
             } else {
-                setError("Unexpected error");
+                setError(t("auth.unexpected"));
             }
         } finally {
             setLoading(false);
@@ -56,7 +58,7 @@ export function LoginPage() {
     return (
         <main className="login-page">
             <SystemWindow
-                title="SYSTEM ACCESS"
+                title={t("auth.systemAccess")}
                 variant="notification"
             >
                 <form
@@ -64,13 +66,13 @@ export function LoginPage() {
                     onSubmit={handleSubmit}
                 >
                     <div className="login-form__intro">
-                        <h1>THE SYSTEM</h1>
-                        <p>Identify yourself, Hunter.</p>
+                        <h1>{t("app.name")}</h1>
+                        <p>{t("auth.identify")}</p>
                     </div>
 
                     <SystemInput
-                        label="Hunter Name"
-                        placeholder="Enter username"
+                        label={t("auth.username")}
+                        placeholder={t("auth.usernameInput")}
                         value={username}
                         onChange={(event) =>
                             setUsername(event.target.value)
@@ -79,9 +81,9 @@ export function LoginPage() {
                     />
 
                     <SystemInput
-                        label="Password"
+                        label={t("auth.password")}
                         type="password"
-                        placeholder="Enter password"
+                        placeholder={t("auth.passwordInput")}
                         value={password}
                         onChange={(event) =>
                             setPassword(event.target.value)
@@ -100,13 +102,13 @@ export function LoginPage() {
                         loading={loading}
                         disabled={!username || !password}
                     >
-                        Enter System
+                        {t("auth.enter")}
                     </SystemButton>
 
                     <p className="login-form__switch">
-                        New Hunter?{" "}
+                        {t("auth.newHunter")}{" "}
                         <Link to="/register">
-                            Register
+                            {t("auth.register")}
                         </Link>
                     </p>
                 </form>
