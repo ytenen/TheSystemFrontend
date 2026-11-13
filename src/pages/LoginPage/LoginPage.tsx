@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useI18n } from "../../i18n/i18n";
+import type { Language } from "../../i18n/i18n";
 
 import { authApi } from "../../api/authApi";
 import { SystemWindow } from "../../components/ui/SystemWindow/SystemWindow";
@@ -12,12 +13,12 @@ import "./LoginPage.css";
 
 export function LoginPage() {
     const navigate = useNavigate();
-    const { t } = useI18n();
+    const { t, language } = useI18n();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
-    const [error, setError] = useState("");
+    const [error, setError] = useState<{ language: Language; value: string } | null>(null);
     const [loading, setLoading] = useState(false);
 
     async function handleSubmit(
@@ -25,7 +26,7 @@ export function LoginPage() {
     ) {
         event.preventDefault();
 
-        setError("");
+        setError(null);
         setLoading(true);
 
         try {
@@ -42,13 +43,14 @@ export function LoginPage() {
             navigate("/dashboard");
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                setError(
-                    error.response?.data?.message ??
+                setError({
+                    language,
+                    value: error.response?.data?.message ??
                     error.response?.data?.error ??
-                    t("auth.invalid")
-                );
+                    t("auth.invalid"),
+                });
             } else {
-                setError(t("auth.unexpected"));
+                setError({ language, value: t("auth.unexpected") });
             }
         } finally {
             setLoading(false);
@@ -91,9 +93,9 @@ export function LoginPage() {
                         autoComplete="current-password"
                     />
 
-                    {error && (
+                    {error?.language === language && (
                         <p className="login-form__error">
-                            {error}
+                            {error.value}
                         </p>
                     )}
 
