@@ -6,18 +6,19 @@ import "./HunterAvatar.css";
 interface Props {
     avatarUrl: string | null;
     onChanged: () => Promise<void>;
+    onNotice: (message: string) => void;
 }
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
-export function HunterAvatar({ avatarUrl, onChanged }: Props) {
+export function HunterAvatar({ avatarUrl, onChanged, onNotice }: Props) {
     const fileInput = useRef<HTMLInputElement>(null);
     const [displayUrl, setDisplayUrl] = useState<string | null>(null);
     const [revision, setRevision] = useState(0);
     const [file, setFile] = useState<File | null>(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-    const [notice, setNotice] = useState("");
+    const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -44,7 +45,6 @@ export function HunterAvatar({ avatarUrl, onChanged }: Props) {
 
     function selectFile(selected: File) {
         setError("");
-        setNotice("");
         if (!["image/jpeg", "image/png"].includes(selected.type)) {
             setError("Only PNG and JPEG images are supported");
             return;
@@ -53,6 +53,7 @@ export function HunterAvatar({ avatarUrl, onChanged }: Props) {
             setError("Image must be between 1 byte and 10 MB");
             return;
         }
+        setMenuOpen(false);
         setFile(selected);
     }
 
@@ -63,13 +64,9 @@ export function HunterAvatar({ avatarUrl, onChanged }: Props) {
             await playerApi.uploadAvatar(cropped);
             setRevision(value => value + 1);
             setFile(null);
-            setNotice("AVATAR UPDATED");
-            // Upload already succeeded; a failed player refresh must not trigger re-upload.
-            try {
-                await onChanged();
-            } catch {
-                setError("Avatar saved; player refresh failed");
-            }
+            setMenuOpen(false);
+            onNotice("AVATAR UPDATED");
+            await onChanged();
         } catch {
             setError("Failed to upload avatar");
             throw new Error("Avatar upload failed");
@@ -82,11 +79,11 @@ export function HunterAvatar({ avatarUrl, onChanged }: Props) {
         if (busy) return;
         setBusy(true);
         setError("");
-        setNotice("");
         try {
             await playerApi.deleteAvatar();
             setDisplayUrl(null);
-            setNotice("AVATAR REMOVED");
+            setMenuOpen(false);
+            onNotice("AVATAR REMOVED");
             await onChanged();
         } catch {
             setError("Could not remove avatar");
@@ -97,33 +94,62 @@ export function HunterAvatar({ avatarUrl, onChanged }: Props) {
 
     return (
         <div className="hunter-avatar">
-            <div className="hunter-avatar__frame">
+            <div className={`hunter-avatar__frame${menuOpen ? " hunter-avatar__frame--menu-open" : ""}`}>
                 {displayUrl ? (
                     <img src={displayUrl} alt="Hunter avatar" className="hunter-avatar__image" />
                 ) : (
                     <span className="hunter-avatar__placeholder" role="img" aria-label="No avatar">◇</span>
                 )}
+
+                <div className="hunter-avatar__overlay">
+                    <button
+                        type="button"
+                        className="hunter-avatar__edit"
+                        disabled={busy}
+                        onClick={() => fileInput.current?.click()}
+                        aria-label={avatarUrl ? "Change avatar" : "Upload avatar"}
+                    >
+                        <span className="hunter-avatar__edit-icon" aria-hidden="true">✎</span>
+                        <span>{avatarUrl ? "CHANGE" : "UPLOAD"}</span>
+                    </button>
+                    {avatarUrl && (
+                        <button
+                            type="button"
+                            className="hunter-avatar__remove"
+                            disabled={busy}
+                            onClick={() => void remove()}
+                            aria-label="Remove avatar"
+                        >
+                            REMOVE
+                        </button>
+                    )}
+                </div>
                 {busy && <span className="hunter-avatar__loading">UPDATING...</span>}
             </div>
-            <input ref={fileInput} className="hunter-avatar__file" type="file" accept="image/png,image/jpeg"
-                aria-label="Choose avatar image" disabled={busy}
+            <button
+                type="button"
+                className="hunter-avatar__mobile-toggle"
+                aria-label="Avatar actions"
+                aria-expanded={menuOpen}
+                disabled={busy}
+                onClick={() => setMenuOpen(value => !value)}
+            >
+                ✎
+            </button>
+            <input
+                ref={fileInput}
+                className="hunter-avatar__file"
+                type="file"
+                accept="image/png,image/jpeg"
+                aria-label="Choose avatar image"
+                disabled={busy}
                 onChange={event => {
                     const selected = event.currentTarget.files?.[0];
                     if (selected) selectFile(selected);
                     event.currentTarget.value = "";
-                }} />
-            <div className="hunter-avatar__actions">
-                <button type="button" disabled={busy} onClick={() => fileInput.current?.click()}>
-                    {avatarUrl ? "CHANGE" : "UPLOAD"}
-                </button>
-                {avatarUrl && (
-                    <button type="button" className="hunter-avatar__remove" disabled={busy} onClick={() => void remove()}>
-                        REMOVE
-                    </button>
-                )}
-            </div>
+                }}
+            />
             {error && <p role="alert" className="hunter-avatar__error">{error}</p>}
-            {notice && <p role="status" className="hunter-avatar__notice">{notice}</p>}
             {file && (
                 <AvatarCropModal file={file} onCancel={() => setFile(null)} onSave={upload} />
             )}
