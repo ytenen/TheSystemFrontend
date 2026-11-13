@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getCurrentLanguage } from "../i18n/i18n";
 
 export const apiClient = axios.create({
     baseURL: "http://localhost:8080",
@@ -8,6 +9,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
+    config.headers.set("Accept-Language", getCurrentLanguage());
     const token = localStorage.getItem("accessToken");
 
     const isPublicAuthRequest =
