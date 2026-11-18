@@ -21,6 +21,8 @@ import { HunterProfile } from "../../components/player/HunterProfile/HunterProfi
 import { DailyQuestCard } from "../../components/quest/DailyQuestCard/DailyQuestCard";
 import { DailyQuestSettings } from "../../components/quest/DailyQuestSettings/DailyQuestSettings";
 
+import { completionNotice, localizedResponse } from "./dashboardLocaleState";
+
 import "./DashboardPage.css";
 
 export function DashboardPage() {
@@ -49,65 +51,101 @@ export function DashboardPage() {
     const [hiddenCompleted, setHiddenCompleted] =
         useState(false);
 
-    // Refresh server-owned titles/descriptions after a language change.
-    // This never mutates quest progress, settings or authentication.
+    // Only accept localized GET responses for the language that requested them.
+    // Successful responses clear errors from earlier attempts.
     useEffect(() => {
         if (previousLanguage.current === language) return;
         previousLanguage.current = language;
         setSystemMessage(null);
 
         let cancelled = false;
+        const requestedLanguage = language;
+
         void playerApi.getCurrentPlayer()
-            .then(value => { if (!cancelled) setPlayer(value); })
-            .catch(() => { if (!cancelled) setError("dashboard.failedRefreshHunter"); });
+            .then(value => {
+                if (cancelled) return;
+                const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+                if (!response) return;
+                setPlayer(response.data);
+                setError(response.error);
+            })
+            .catch(() => {
+                if (!cancelled && getCurrentLanguage() === requestedLanguage) {
+                    setError("dashboard.failedRefreshHunter");
+                }
+            });
 
         if (questsOpen) {
             void questApi.getDailyQuest()
-                .then(value => { if (!cancelled) setDailyQuest(value); })
-                .catch(() => { if (!cancelled) setQuestError("dashboard.questConnection"); });
+                .then(value => {
+                    if (cancelled) return;
+                    const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+                    if (!response) return;
+                    setDailyQuest(response.data);
+                    setQuestError(response.error);
+                })
+                .catch(() => {
+                    if (!cancelled && getCurrentLanguage() === requestedLanguage) {
+                        setQuestError("dashboard.questConnection");
+                    }
+                });
         }
 
         return () => { cancelled = true; };
-        // The refresh should be triggered only by a language change.
+        // Only react to a language change; the drawer is refreshed on opening.
     }, [language]);
 
     useEffect(() => {
-        async function loadPlayer() {
-            try {
-                const currentPlayer =
-                    await playerApi.getCurrentPlayer();
+        let cancelled = false;
+        const requestedLanguage = getCurrentLanguage();
 
-                setPlayer(currentPlayer);
-            } catch {
-                setError("dashboard.failedHunter");
-            } finally {
-                setLoading(false);
-            }
-        }
+        void playerApi.getCurrentPlayer()
+            .then(value => {
+                if (cancelled) return;
+                const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+                if (!response) return;
+                setPlayer(response.data);
+                setError(response.error);
+            })
+            .catch(() => {
+                if (!cancelled && getCurrentLanguage() === requestedLanguage) {
+                    setError("dashboard.failedHunter");
+                }
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
 
-        void loadPlayer();
+        return () => { cancelled = true; };
     }, []);
 
     async function refreshPlayer() {
+        const requestedLanguage = getCurrentLanguage();
         try {
-            const requestLanguage = getCurrentLanguage();
-            const currentPlayer =
-                await playerApi.getCurrentPlayer();
-            if (getCurrentLanguage() !== requestLanguage) return;
-
-            setPlayer(currentPlayer);
+            const value = await playerApi.getCurrentPlayer();
+            const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+            if (!response) return;
+            setPlayer(response.data);
+            setError(response.error);
         } catch {
-            setError("dashboard.failedRefreshHunter");
+            if (getCurrentLanguage() === requestedLanguage) {
+                setError("dashboard.failedRefreshHunter");
+            }
         }
     }
 
-    async function refreshDailyQuest() {
-        const requestLanguage = getCurrentLanguage();
-        const quest = await questApi.getDailyQuest();
-        if (getCurrentLanguage() === requestLanguage) setDailyQuest(quest);
+    async function refreshDailyQuest(): Promise<boolean> {
+        const requestedLanguage = getCurrentLanguage();
+        const value = await questApi.getDailyQuest();
+        const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+        if (!response) return false;
+        setDailyQuest(response.data);
+        setQuestError(response.error);
+        return true;
     }
 
     async function handleOpenQuests() {
+        const requestedLanguage = getCurrentLanguage();
         setQuestsOpen(true);
         setEditingDaily(false);
         setQuestLoading(true);
@@ -116,7 +154,9 @@ export function DashboardPage() {
         try {
             await refreshDailyQuest();
         } catch {
-            setQuestError("dashboard.questConnection");
+            if (getCurrentLanguage() === requestedLanguage) {
+                setQuestError("dashboard.questConnection");
+            }
         } finally {
             setQuestLoading(false);
         }
@@ -131,6 +171,7 @@ export function DashboardPage() {
         }
 
         const wasCompleted = dailyQuest.completed;
+        const requestedLanguage = getCurrentLanguage();
 
         setUpdatingAction(action);
         setQuestError("");
@@ -153,17 +194,30 @@ export function DashboardPage() {
                 };
             });
 
-            if (!wasCompleted && result.completed) {
-                setSystemMessage(
-                    result.message ? { server: result.message } : { key: "dashboard.dailyComplete" }
-                );
-
+            const notice = completionNotice(
+                wasCompleted,
+                result.completed,
+                result.message,
+                requestedLanguage,
+                getCurrentLanguage()
+            );
+            if (notice) {
+                setSystemMessage(notice);
                 await refreshPlayer();
             }
 
             if (result.hiddenCompleted) {
                 setHiddenCompleted(true);
                 await refreshPlayer();
+            }
+            // A locale switch can refetch before the mutation completes.
+            // Reconcile the current quest after the mutation without resetting progress.
+            if (requestedLanguage !== getCurrentLanguage()) {
+                try {
+                    await refreshDailyQuest();
+                } catch {
+                    setQuestError("dashboard.questConnection");
+                }
             }
         } catch {
             setQuestError("dashboard.progressError");
