@@ -99,13 +99,13 @@
 @media (max-width: 650px) {
     .dashboard-page {
         padding:
-                90px
+                108px
                 var(--space-md)
                 var(--space-lg);
     }
 
     .dashboard-page__system-title {
-        top: 28px;
+        top: 74px;
         left: var(--space-md);
     }
 
