@@ -1,9 +1,9 @@
 import type { en } from "./en";
 
 export const ru: Record<keyof typeof en, string> = {
-  "app.name": "СИСТЕМА",
+  "app.name": "THE SYSTEM",
   "app.hunter": "ОХОТНИК",
-  "app.system": "СИСТЕМА",
+  "app.system": "SYSTEM",
   "app.close": "Закрыть",
   "app.processing": "ВЫПОЛНЯЕТСЯ...",
   "language.label": "Язык",
