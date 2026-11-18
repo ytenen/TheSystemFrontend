@@ -2,17 +2,22 @@ import {
     Navigate,
     Route,
     Routes,
+    useLocation,
 } from "react-router-dom";
 
 import { LoginPage } from "./pages/LoginPage/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage/RegisterPage";
 import { DashboardPage } from "./pages/DashboardPage/DashboardPage";
 import { LanguageSwitcher } from "./components/ui/LanguageSwitcher/LanguageSwitcher";
+import "./App.css";
 
 function App() {
+    const { pathname } = useLocation();
     return (
         <>
-        <LanguageSwitcher />
+        {pathname !== "/dashboard" && (
+            <div className="app__auth-language"><LanguageSwitcher /></div>
+        )}
         <Routes>
             <Route
                 path="/"
