@@ -16,6 +16,7 @@ import { SystemWindow } from "../../components/ui/SystemWindow/SystemWindow";
 import { SystemButton } from "../../components/ui/SystemButton/SystemButton";
 import { SystemDrawer } from "../../components/ui/SystemDrawer/SystemDrawer";
 import { SystemNotification } from "../../components/ui/SystemNotification/SystemNotification";
+import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher/LanguageSwitcher";
 
 import { HunterProfile } from "../../components/player/HunterProfile/HunterProfile";
 import { DailyQuestCard } from "../../components/quest/DailyQuestCard/DailyQuestCard";
@@ -313,6 +314,7 @@ export function DashboardPage() {
 
             {!questsOpen && (
                 <div className="dashboard-page__quest-button">
+                    <LanguageSwitcher />
                     <SystemButton onClick={handleOpenQuests}>
                         {t("dashboard.quests")}
                     </SystemButton>
