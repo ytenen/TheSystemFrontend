@@ -1,8 +1,4 @@
 .language-switcher {
-    position: fixed;
-    z-index: 450;
-    top: 16px;
-    right: 16px;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -34,5 +30,5 @@
     text-shadow: 0 0 9px rgba(56,189,248,.4);
 }
 @media(max-width: 650px) {
-    .language-switcher { top: 8px; right: 8px; padding: 4px 7px; }
+    .language-switcher { padding: 4px 7px; }
 }
