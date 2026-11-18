@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import "./SystemNotification.css";
+import { useI18n } from "../../../i18n/i18n";
 
 interface SystemNotificationProps {
     open: boolean;
@@ -12,12 +13,13 @@ interface SystemNotificationProps {
 
 export function SystemNotification({
                                        open,
-                                       title = "SYSTEM NOTICE",
+                                       title,
                                        message,
                                        variant = "default",
                                        duration = 7000,
                                        onClose,
                                    }: SystemNotificationProps) {
+    const { t } = useI18n();
     useEffect(() => {
         if (!open) {
             return;
@@ -43,12 +45,12 @@ export function SystemNotification({
             }`}
         >
             <div className="system-notification__header">
-                <span>{title}</span>
+                <span>{title ?? t("notification.title")}</span>
 
                 <button
                     type="button"
                     onClick={onClose}
-                    aria-label="Close notification"
+                    aria-label={t("notification.close")}
                 >
                     ×
                 </button>

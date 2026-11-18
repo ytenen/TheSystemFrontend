@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useI18n, getCurrentLanguage } from "../../i18n/i18n";
+import type { TranslationKey } from "../../i18n/i18n";
 import { useNavigate } from "react-router-dom";
 
 import { playerApi } from "../../api/playerApi";
@@ -14,15 +16,20 @@ import { SystemWindow } from "../../components/ui/SystemWindow/SystemWindow";
 import { SystemButton } from "../../components/ui/SystemButton/SystemButton";
 import { SystemDrawer } from "../../components/ui/SystemDrawer/SystemDrawer";
 import { SystemNotification } from "../../components/ui/SystemNotification/SystemNotification";
+import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher/LanguageSwitcher";
 
 import { HunterProfile } from "../../components/player/HunterProfile/HunterProfile";
 import { DailyQuestCard } from "../../components/quest/DailyQuestCard/DailyQuestCard";
 import { DailyQuestSettings } from "../../components/quest/DailyQuestSettings/DailyQuestSettings";
 
+import { completionNotice, localizedResponse } from "./dashboardLocaleState";
+
 import "./DashboardPage.css";
 
 export function DashboardPage() {
     const navigate = useNavigate();
+    const { language, t } = useI18n();
+    const previousLanguage = useRef(language);
 
     const [player, setPlayer] = useState<Player | null>(null);
     const [dailyQuest, setDailyQuest] = useState<Quest | null>(null);
@@ -30,8 +37,8 @@ export function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [questLoading, setQuestLoading] = useState(false);
 
-    const [error, setError] = useState("");
-    const [questError, setQuestError] = useState("");
+    const [error, setError] = useState<TranslationKey | "">("");
+    const [questError, setQuestError] = useState<TranslationKey | "">("");
 
     const [questsOpen, setQuestsOpen] = useState(false);
     const [editingDaily, setEditingDaily] = useState(false);
@@ -40,45 +47,106 @@ export function DashboardPage() {
         useState<string | null>(null);
 
     const [systemMessage, setSystemMessage] =
-        useState<string | null>(null);
+        useState<{ key?: TranslationKey; server?: string } | null>(null);
 
     const [hiddenCompleted, setHiddenCompleted] =
         useState(false);
 
+    // Only accept localized GET responses for the language that requested them.
+    // Successful responses clear errors from earlier attempts.
     useEffect(() => {
-        async function loadPlayer() {
-            try {
-                const currentPlayer =
-                    await playerApi.getCurrentPlayer();
+        if (previousLanguage.current === language) return;
+        previousLanguage.current = language;
+        setSystemMessage(null);
 
-                setPlayer(currentPlayer);
-            } catch {
-                setError("Failed to load Hunter data");
-            } finally {
-                setLoading(false);
-            }
+        let cancelled = false;
+        const requestedLanguage = language;
+
+        void playerApi.getCurrentPlayer()
+            .then(value => {
+                if (cancelled) return;
+                const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+                if (!response) return;
+                setPlayer(response.data);
+                setError(response.error);
+            })
+            .catch(() => {
+                if (!cancelled && getCurrentLanguage() === requestedLanguage) {
+                    setError("dashboard.failedRefreshHunter");
+                }
+            });
+
+        if (questsOpen) {
+            void questApi.getDailyQuest()
+                .then(value => {
+                    if (cancelled) return;
+                    const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+                    if (!response) return;
+                    setDailyQuest(response.data);
+                    setQuestError(response.error);
+                })
+                .catch(() => {
+                    if (!cancelled && getCurrentLanguage() === requestedLanguage) {
+                        setQuestError("dashboard.questConnection");
+                    }
+                });
         }
 
-        void loadPlayer();
+        return () => { cancelled = true; };
+        // Only react to a language change; the drawer is refreshed on opening.
+    }, [language]);
+
+    useEffect(() => {
+        let cancelled = false;
+        const requestedLanguage = getCurrentLanguage();
+
+        void playerApi.getCurrentPlayer()
+            .then(value => {
+                if (cancelled) return;
+                const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+                if (!response) return;
+                setPlayer(response.data);
+                setError(response.error);
+            })
+            .catch(() => {
+                if (!cancelled && getCurrentLanguage() === requestedLanguage) {
+                    setError("dashboard.failedHunter");
+                }
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+
+        return () => { cancelled = true; };
     }, []);
 
     async function refreshPlayer() {
+        const requestedLanguage = getCurrentLanguage();
         try {
-            const currentPlayer =
-                await playerApi.getCurrentPlayer();
-
-            setPlayer(currentPlayer);
+            const value = await playerApi.getCurrentPlayer();
+            const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+            if (!response) return;
+            setPlayer(response.data);
+            setError(response.error);
         } catch {
-            setError("Failed to refresh Hunter data");
+            if (getCurrentLanguage() === requestedLanguage) {
+                setError("dashboard.failedRefreshHunter");
+            }
         }
     }
 
-    async function refreshDailyQuest() {
-        const quest = await questApi.getDailyQuest();
-        setDailyQuest(quest);
+    async function refreshDailyQuest(): Promise<boolean> {
+        const requestedLanguage = getCurrentLanguage();
+        const value = await questApi.getDailyQuest();
+        const response = localizedResponse(requestedLanguage, getCurrentLanguage(), value);
+        if (!response) return false;
+        setDailyQuest(response.data);
+        setQuestError(response.error);
+        return true;
     }
 
     async function handleOpenQuests() {
+        const requestedLanguage = getCurrentLanguage();
         setQuestsOpen(true);
         setEditingDaily(false);
         setQuestLoading(true);
@@ -87,9 +155,9 @@ export function DashboardPage() {
         try {
             await refreshDailyQuest();
         } catch {
-            setQuestError(
-                "Failed to establish connection with Quest System"
-            );
+            if (getCurrentLanguage() === requestedLanguage) {
+                setQuestError("dashboard.questConnection");
+            }
         } finally {
             setQuestLoading(false);
         }
@@ -104,6 +172,7 @@ export function DashboardPage() {
         }
 
         const wasCompleted = dailyQuest.completed;
+        const requestedLanguage = getCurrentLanguage();
 
         setUpdatingAction(action);
         setQuestError("");
@@ -126,11 +195,15 @@ export function DashboardPage() {
                 };
             });
 
-            if (!wasCompleted && result.completed) {
-                setSystemMessage(
-                    result.message || "DAILY QUEST COMPLETE"
-                );
-
+            const notice = completionNotice(
+                wasCompleted,
+                result.completed,
+                result.message,
+                requestedLanguage,
+                getCurrentLanguage()
+            );
+            if (notice) {
+                setSystemMessage(notice);
                 await refreshPlayer();
             }
 
@@ -138,8 +211,17 @@ export function DashboardPage() {
                 setHiddenCompleted(true);
                 await refreshPlayer();
             }
+            // A locale switch can refetch before the mutation completes.
+            // Reconcile the current quest after the mutation without resetting progress.
+            if (requestedLanguage !== getCurrentLanguage()) {
+                try {
+                    await refreshDailyQuest();
+                } catch {
+                    setQuestError("dashboard.questConnection");
+                }
+            }
         } catch {
-            setQuestError("Failed to update quest progress");
+            setQuestError("dashboard.progressError");
         } finally {
             setUpdatingAction(null);
         }
@@ -150,7 +232,7 @@ export function DashboardPage() {
         mode: DailySettingsMode
     ): Promise<void> {
         if (updatingAction) {
-            throw new Error("Quest progress is being updated");
+            throw new Error(t("dashboard.progressUpdating"));
         }
 
         setQuestError("");
@@ -168,25 +250,19 @@ export function DashboardPage() {
                 // Не подменяем его локально.
                 await refreshDailyQuest();
 
-                setSystemMessage(
-                    "DAILY QUEST SETTINGS UPDATED"
-                );
+                setSystemMessage({ key: "dashboard.settingsUpdated" });
             } catch {
                 // PUT уже прошёл успешно.
                 // Нельзя повторно отправлять его только
                 // из-за ошибки последующего GET.
                 setDailyQuest(null);
 
-                setQuestError(
-                    "Settings saved, but quest refresh failed. Retry loading."
-                );
+                setQuestError("dashboard.settingsRefreshFailed");
             }
         } else {
             // Для TOMORROW сегодняшние цели
             // и прогресс остаются без изменений.
-            setSystemMessage(
-                "NEW DAILY QUEST SETTINGS SCHEDULED FOR TOMORROW"
-            );
+            setSystemMessage({ key: "dashboard.settingsScheduled" });
         }
 
         setEditingDaily(false);
@@ -200,8 +276,8 @@ export function DashboardPage() {
     if (loading) {
         return (
             <main className="dashboard-page">
-                <SystemWindow title="THE SYSTEM">
-                    <p>Loading Hunter data...</p>
+                <SystemWindow title={t("app.name")}>
+                    <p>{t("dashboard.loadingHunter")}</p>
                 </SystemWindow>
             </main>
         );
@@ -211,17 +287,17 @@ export function DashboardPage() {
         return (
             <main className="dashboard-page">
                 <SystemWindow
-                    title="SYSTEM ERROR"
+                    title={t("dashboard.systemError")}
                     variant="notification"
                 >
                     <div className="dashboard-page__content">
                         <p>
-                            {error || "Hunter data unavailable"}
+                            {error ? t(error) : t("dashboard.unavailableHunter")}
                         </p>
 
                         <div className="dashboard-page__actions">
                             <SystemButton onClick={handleLogout}>
-                                Return to Login
+                                {t("dashboard.returnLogin")}
                             </SystemButton>
                         </div>
                     </div>
@@ -233,24 +309,25 @@ export function DashboardPage() {
     return (
         <main className="dashboard-page">
             <span className="dashboard-page__system-title">
-                THE SYSTEM
+                {t("app.name")}
             </span>
 
             {!questsOpen && (
                 <div className="dashboard-page__quest-button">
+                    <LanguageSwitcher />
                     <SystemButton onClick={handleOpenQuests}>
-                        QUESTS →
+                        {t("dashboard.quests")}
                     </SystemButton>
                 </div>
             )}
 
-            <SystemWindow title="HUNTER STATUS">
+            <SystemWindow title={t("dashboard.hunterStatus")}>
                 <div className="dashboard-page__content">
-                    <HunterProfile player={player} onAvatarChanged={refreshPlayer} onAvatarNotice={setSystemMessage} />
+                    <HunterProfile player={player} onAvatarChanged={refreshPlayer} onAvatarNotice={(key) => setSystemMessage({ key })} />
 
                     <div className="dashboard-page__actions">
                         <SystemButton onClick={handleLogout}>
-                            Logout
+                            {t("dashboard.logout")}
                         </SystemButton>
                     </div>
                 </div>
@@ -260,8 +337,8 @@ export function DashboardPage() {
                 open={questsOpen}
                 title={
                     editingDaily
-                        ? "QUEST SETTINGS"
-                        : "QUEST LOG"
+                        ? t("dashboard.questSettings")
+                        : t("dashboard.questLog")
                 }
                 onClose={() => setQuestsOpen(false)}
             >
@@ -278,8 +355,8 @@ export function DashboardPage() {
                         <>
                             {questLoading && (
                                 <div className="dashboard-page__quest-state">
-                                    <span>SYSTEM</span>
-                                    <p>Loading quest data...</p>
+                                    <span>{t("app.system")}</span>
+                                    <p>{t("dashboard.loadingQuest")}</p>
                                 </div>
                             )}
 
@@ -288,8 +365,8 @@ export function DashboardPage() {
                                     className="dashboard-page__quest-state"
                                     role="alert"
                                 >
-                                    <span>SYSTEM ERROR</span>
-                                    <p>{questError}</p>
+                                    <span>{t("dashboard.systemError")}</span>
+                                    <p>{t(questError)}</p>
                                 </div>
                             )}
 
@@ -309,7 +386,7 @@ export function DashboardPage() {
                                 <SystemButton
                                     onClick={handleOpenQuests}
                                 >
-                                    RETRY LOADING
+                                    {t("dashboard.retry")}
                                 </SystemButton>
                             )}
                         </>
@@ -319,14 +396,14 @@ export function DashboardPage() {
 
             <SystemNotification
                 open={systemMessage !== null}
-                message={systemMessage ?? ""}
+                message={systemMessage?.key ? t(systemMessage.key) : systemMessage?.server ?? ""}
                 onClose={() => setSystemMessage(null)}
             />
 
             <SystemNotification
                 open={hiddenCompleted}
-                title="HIDDEN QUEST COMPLETE"
-                message="OVERACHIEVER"
+                title={t("dashboard.hiddenQuest")}
+                message={t("dashboard.overachiever")}
                 variant="hidden"
                 onClose={() => setHiddenCompleted(false)}
             />

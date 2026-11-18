@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent, WheelEvent } from "react";
 import "./AvatarCropModal.css";
+import { useI18n } from "../../../i18n/i18n";
+import type { TranslationKey } from "../../../i18n/i18n";
 
 interface Props {
     file: File;
@@ -12,12 +14,13 @@ const SIZE = 512;
 const VIEW = 320;
 
 export function AvatarCropModal({ file, onCancel, onSave }: Props) {
+    const { t } = useI18n();
     const [source, setSource] = useState("");
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [zoom, setZoom] = useState(1);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState<TranslationKey | "">("");
     const imageRef = useRef<HTMLImageElement>(null);
     const dragRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
 
@@ -99,7 +102,7 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
             });
             await onSave(new File([blob], format === "image/png" ? "hunter-avatar.png" : "hunter-avatar.jpg", { type: format }));
         } catch {
-            setError("Failed to crop or upload avatar");
+            setError("crop.error");
         } finally {
             setSaving(false);
         }
@@ -109,10 +112,10 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
         <div className="avatar-crop__backdrop" role="presentation">
             <section className="avatar-crop__modal" role="dialog" aria-modal="true" aria-labelledby="avatar-crop-title">
                 <div className="avatar-crop__heading">
-                    <h2 id="avatar-crop-title">CONFIGURE AVATAR</h2>
-                    <button type="button" onClick={onCancel} disabled={saving} aria-label="Close avatar editor">×</button>
+                    <h2 id="avatar-crop-title">{t("crop.heading")}</h2>
+                    <button type="button" onClick={onCancel} disabled={saving} aria-label={t("crop.close")}>×</button>
                 </div>
-                <p className="avatar-crop__hint">Drag the image to reposition. Use the slider or scroll to zoom.</p>
+                <p className="avatar-crop__hint">{t("crop.hint")}</p>
                 <div
                     className="avatar-crop__viewport"
                     onPointerDown={pointerDown}
@@ -126,7 +129,7 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
                         <img
                             ref={imageRef}
                             src={source}
-                            alt="Avatar crop preview"
+                            alt={t("crop.preview")}
                             draggable={false}
                             onLoad={event => {
                                 const image = event.currentTarget;
@@ -145,16 +148,16 @@ export function AvatarCropModal({ file, onCancel, onSave }: Props) {
                     <div className="avatar-crop__grid" aria-hidden="true" />
                 </div>
                 <label className="avatar-crop__zoom">
-                    <span>ZOOM</span>
+                    <span>{t("crop.zoom")}</span>
                     <input type="range" min="0.25" max="4" step="0.01" value={zoom}
                         onChange={event => changeZoom(Number(event.target.value))} disabled={saving || !dimensions.width} />
                     <span>{Math.round(zoom * 100)}%</span>
                 </label>
-                {error && <p className="avatar-crop__error" role="alert">{error}</p>}
+                {error && <p className="avatar-crop__error" role="alert">{t(error)}</p>}
                 <div className="avatar-crop__actions">
-                    <button type="button" onClick={onCancel} disabled={saving}>CANCEL</button>
+                    <button type="button" onClick={onCancel} disabled={saving}>{t("crop.cancel")}</button>
                     <button type="button" onClick={() => void save()} disabled={saving || !dimensions.width}>
-                        {saving ? "SAVING..." : "SAVE AVATAR"}
+                        {saving ? t("crop.saving") : t("crop.save")}
                     </button>
                 </div>
             </section>
