@@ -1,0 +1,14 @@
+/* The language selector stays available before authentication. */
+.app__auth-language {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+}
+
+@media (max-width: 650px) {
+    .app__auth-language {
+        top: 8px;
+        right: 8px;
+    }
+}
