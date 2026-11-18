@@ -41,11 +41,14 @@
 
     z-index: 20;
 
-    width: 140px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.dashboard-page__quest-button button {
-    width: 100%;
+.dashboard-page__quest-button > .system-button {
+    width: 140px;
+    flex-shrink: 0;
 }
 
 /* Основное содержимое SystemWindow */
@@ -110,6 +113,10 @@
         top: 16px;
         right: var(--space-md);
 
+        gap: 6px;
+    }
+
+    .dashboard-page__quest-button > .system-button {
         width: 125px;
     }
 }
