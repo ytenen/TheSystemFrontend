@@ -305,7 +305,7 @@
     display: grid;
 
     grid-template-columns:
-    42px 1fr 58px;
+    42px minmax(0, 1fr) minmax(90px, max-content);
 
     gap: var(--space-sm);
 
@@ -332,6 +332,8 @@
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.08em;
+    box-sizing: border-box;
+    white-space: nowrap;
 
     cursor: pointer;
 
@@ -366,6 +368,7 @@
 
 .daily-quest__amount {
     width: 100%;
+    min-width: 0;
     height: 30px;
 
     padding: 0 10px;
@@ -481,7 +484,7 @@
 
     .daily-quest__controls {
         grid-template-columns:
-      42px 1fr 55px;
+            42px minmax(0, 1fr) minmax(90px, max-content);
     }
 }
 
