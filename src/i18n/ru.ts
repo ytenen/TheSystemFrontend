@@ -127,5 +127,18 @@ export const ru: Record<keyof typeof en, string> = {
   "exercise.situps": "Подъёмы корпуса",
   "exercise.running": "Бег",
   "exercise.walking": "Ходьба",
+  "stats.xp": "XP",
+  "reward.rewards": "Награды",
+  "reward.strength": "Силы",
+  "reward.agility": "Ловкости",
+  "reward.vitality": "Выносливости",
+  "reward.intelligence": "Интеллекта",
+  "reward.perception": "Восприятия",
+  "reward.will": "Воли",
+  "reward.daily": "ЕЖЕДНЕВНЫЙ КВЕСТ",
+  "reward.hidden": "СКРЫТЫЙ КВЕСТ",
+  "reward.granted": "НАГРАДЫ ПОЛУЧЕНЫ",
+  "reward.statRaised": "ХАРАКТЕРИСТИКА ПОВЫШЕНА",
+  "reward.statIncreased": "{{stat}} +{{amount}}",
   "exercise.burpees": "Бёрпи"
 };
