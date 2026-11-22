@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Quest } from "../../../types/quest";
+import { QuestRewardTags } from "../QuestRewardTags/QuestRewardTags";
 import { useI18n } from "../../../i18n/i18n";
 import type { TranslationKey } from "../../../i18n/i18n";
 import "./DailyQuestCard.css";
@@ -92,9 +93,7 @@ export function DailyQuestCard({
             </span>
                     )}
 
-                    <span className="daily-quest__reward">
-            +{quest.expReward} {t("quest.exp")}
-          </span>
+
 
                     <span
                         className={`daily-quest__arrow ${
@@ -121,6 +120,8 @@ export function DailyQuestCard({
                             {quest.description}
                         </p>
                     )}
+
+                    <QuestRewardTags expReward={quest.expReward} statXpRewards={quest.statXpRewards} />
 
                     <div className="daily-quest__objectives">
                         {Object.entries(quest.targets).map(
