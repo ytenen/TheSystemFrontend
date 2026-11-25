@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getCurrentLanguage } from "../i18n/i18n";
 import { resolveApiBaseUrl } from "./apiConfig";
+import { shouldClearInvalidToken } from "./authSecurity";
 
 export const apiClient = axios.create({
     baseURL: resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL, import.meta.env.DEV),
@@ -37,16 +38,13 @@ apiClient.interceptors.response.use(
         // A 401 from a protected endpoint invalidates only the JWT used by
         // that request, not a newer token saved during an in-flight request.
         const request = axios.isAxiosError(error) ? error.config : undefined;
-        const isPublicAuthRequest =
-            request?.url === "/api/auth/login" ||
-            request?.url === "/api/auth/register";
-
-        if (error?.response?.status === 401 && request && !isPublicAuthRequest) {
-            const sentToken = request.headers.get("Authorization");
-            const storedToken = localStorage.getItem("accessToken");
-            if (storedToken && sentToken === `Bearer ${storedToken}`) {
-                localStorage.removeItem("accessToken");
-            }
+        if (request && shouldClearInvalidToken(
+            error.response?.status,
+            request.url,
+            request.headers.get("Authorization"),
+            localStorage.getItem("accessToken")
+        )) {
+            localStorage.removeItem("accessToken");
         }
         return Promise.reject(error);
     }
