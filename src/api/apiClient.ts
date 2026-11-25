@@ -30,3 +30,24 @@ apiClient.interceptors.request.use((config) => {
 
     return config;
 });
+
+apiClient.interceptors.response.use(
+    response => response,
+    error => {
+        // A 401 from a protected endpoint invalidates only the JWT used by
+        // that request, not a newer token saved during an in-flight request.
+        const request = axios.isAxiosError(error) ? error.config : undefined;
+        const isPublicAuthRequest =
+            request?.url === "/api/auth/login" ||
+            request?.url === "/api/auth/register";
+
+        if (error?.response?.status === 401 && request && !isPublicAuthRequest) {
+            const sentToken = request.headers.get("Authorization");
+            const storedToken = localStorage.getItem("accessToken");
+            if (storedToken && sentToken === `Bearer ${storedToken}`) {
+                localStorage.removeItem("accessToken");
+            }
+        }
+        return Promise.reject(error);
+    }
+);
