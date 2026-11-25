@@ -107,6 +107,10 @@ export function DailyQuestCard({
                 </div>
             </button>
 
+            <div className="daily-quest__reward-summary">
+                <QuestRewardTags expReward={quest.expReward} statXpRewards={quest.statXpRewards} />
+            </div>
+
             <div
                 className={`daily-quest__body ${
                     expanded
@@ -120,8 +124,6 @@ export function DailyQuestCard({
                             {quest.description}
                         </p>
                     )}
-
-                    <QuestRewardTags expReward={quest.expReward} statXpRewards={quest.statXpRewards} />
 
                     <div className="daily-quest__objectives">
                         {Object.entries(quest.targets).map(
