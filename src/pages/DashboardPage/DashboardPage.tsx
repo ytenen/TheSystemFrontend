@@ -6,10 +6,11 @@ import { useNavigate } from "react-router-dom";
 import { playerApi } from "../../api/playerApi";
 import { questApi } from "../../api/questApi";
 
-import type { Player } from "../../types/player";
+import type { Player, PlayerStats } from "../../types/player";
 import type {
     Quest,
     DailySettingsMode,
+    QuestRewardGrant,
 } from "../../types/quest";
 
 import { SystemWindow } from "../../components/ui/SystemWindow/SystemWindow";
@@ -21,6 +22,8 @@ import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher/LanguageS
 import { HunterProfile } from "../../components/player/HunterProfile/HunterProfile";
 import { DailyQuestCard } from "../../components/quest/DailyQuestCard/DailyQuestCard";
 import { DailyQuestSettings } from "../../components/quest/DailyQuestSettings/DailyQuestSettings";
+import { QuestRewardSummary } from "../../components/quest/QuestRewardTags/QuestRewardSummary";
+import { confirmedStatIncreases, usableRewards } from "../../utils/statExperience";
 
 import { completionNotice, localizedResponse } from "./dashboardLocaleState";
 
@@ -51,6 +54,8 @@ export function DashboardPage() {
 
     const [hiddenCompleted, setHiddenCompleted] =
         useState(false);
+    const [grantedRewards, setGrantedRewards] = useState<QuestRewardGrant[] | null>(null);
+    const [confirmedStatLevels, setConfirmedStatLevels] = useState<Partial<PlayerStats>>({});
 
     // Only accept localized GET responses for the language that requested them.
     // Successful responses clear errors from earlier attempts.
@@ -195,21 +200,46 @@ export function DashboardPage() {
                 };
             });
 
-            const notice = completionNotice(
-                wasCompleted,
-                result.completed,
-                result.message,
-                requestedLanguage,
-                getCurrentLanguage()
-            );
-            if (notice) {
-                setSystemMessage(notice);
-                await refreshPlayer();
+            const actualGrants = usableRewards(result.rewardsGranted);
+            if (actualGrants.length > 0) {
+                // Only a server-confirmed grant can create a reward notification.
+                setSystemMessage(null);
+                setHiddenCompleted(false);
+                setConfirmedStatLevels({});
+                setGrantedRewards(actualGrants);
+            } else if (result.rewardsGranted === undefined) {
+                // Compatibility with the Backend before rewardsGranted is deployed:
+                // completion text is fine, but never invent award amounts.
+                const notice = completionNotice(
+                    wasCompleted,
+                    result.completed,
+                    result.message,
+                    requestedLanguage,
+                    getCurrentLanguage()
+                );
+                if (notice) setSystemMessage(notice);
+                if (result.hiddenCompleted) setHiddenCompleted(true);
             }
 
-            if (result.hiddenCompleted) {
-                setHiddenCompleted(true);
-                await refreshPlayer();
+            if (actualGrants.length > 0 || (!wasCompleted && result.completed) || result.hiddenCompleted) {
+                // Re-fetch all six stats and their XP from Backend. Only confirmed
+                // numeric increases are shown as level-ups.
+                const beforeStats = player?.stats;
+                const refreshLanguage = getCurrentLanguage();
+                try {
+                    const updatedPlayer = await playerApi.getCurrentPlayer();
+                    if (refreshLanguage === getCurrentLanguage()) {
+                        setPlayer(updatedPlayer);
+                        setError("");
+                    }
+                    if (beforeStats && actualGrants.length > 0) {
+                        setConfirmedStatLevels(confirmedStatIncreases(beforeStats, updatedPlayer.stats));
+                    }
+                } catch {
+                    if (refreshLanguage === getCurrentLanguage()) {
+                        setError("dashboard.failedRefreshHunter");
+                    }
+                }
             }
             // A locale switch can refetch before the mutation completes.
             // Reconcile the current quest after the mutation without resetting progress.
@@ -401,7 +431,19 @@ export function DashboardPage() {
             />
 
             <SystemNotification
-                open={hiddenCompleted}
+                open={grantedRewards !== null}
+                title={t("reward.granted")}
+                message={grantedRewards ? (
+                    <QuestRewardSummary grants={grantedRewards} statIncreases={confirmedStatLevels} />
+                ) : ""}
+                onClose={() => {
+                    setGrantedRewards(null);
+                    setConfirmedStatLevels({});
+                }}
+            />
+
+            <SystemNotification
+                open={hiddenCompleted && grantedRewards === null}
                 title={t("dashboard.hiddenQuest")}
                 message={t("dashboard.overachiever")}
                 variant="hidden"

@@ -125,5 +125,18 @@ export const en = {
   "exercise.situps": "Sit-ups",
   "exercise.running": "Running",
   "exercise.walking": "Walking",
+  "stats.xp": "XP",
+  "reward.rewards": "Rewards",
+  "reward.strength": "Strength",
+  "reward.agility": "Agility",
+  "reward.vitality": "Vitality",
+  "reward.intelligence": "Intelligence",
+  "reward.perception": "Perception",
+  "reward.will": "Will",
+  "reward.daily": "DAILY QUEST",
+  "reward.hidden": "HIDDEN QUEST",
+  "reward.granted": "REWARDS GRANTED",
+  "reward.statRaised": "STAT LEVEL UP",
+  "reward.statIncreased": "{{stat}} +{{amount}}",
   "exercise.burpees": "Burpees"
 } as const;

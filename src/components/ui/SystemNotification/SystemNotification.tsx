@@ -1,11 +1,12 @@
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 import "./SystemNotification.css";
 import { useI18n } from "../../../i18n/i18n";
 
 interface SystemNotificationProps {
     open: boolean;
     title?: string;
-    message: string;
+    message: ReactNode;
     variant?: "default" | "hidden";
     duration?: number;
     onClose: () => void;
@@ -56,9 +57,9 @@ export function SystemNotification({
                 </button>
             </div>
 
-            <strong className="system-notification__message">
+            <div className="system-notification__message">
                 {message}
-            </strong>
+            </div>
 
             <div className="system-notification__line" />
         </div>

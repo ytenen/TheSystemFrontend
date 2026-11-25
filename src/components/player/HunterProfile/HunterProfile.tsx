@@ -2,6 +2,8 @@ import type { Player } from "../../../types/player";
 import { useI18n } from "../../../i18n/i18n";
 import type { TranslationKey } from "../../../i18n/i18n";
 import { HunterAvatar } from "../HunterAvatar/HunterAvatar";
+import { StatProgressBar } from "../StatProgressBar/StatProgressBar";
+import { STAT_KEYS } from "../../../utils/statExperience";
 import "./HunterProfile.css";
 
 interface HunterProfileProps {
@@ -71,13 +73,16 @@ export function HunterProfile({ player, onAvatarChanged, onAvatarNotice }: Hunte
             <div className="hunter-profile__divider" />
 
             <div className="hunter-profile__stats">
-                {Object.entries(player.stats).map(([key, value]) => (
+                {STAT_KEYS.map(key => (
                     <div className="hunter-profile__stat" key={key}>
-            <span>
-              {statLabels[key] ? t(statLabels[key]) : key}
-            </span>
-
-                        <strong>{value}</strong>
+                        <div className="hunter-profile__stat-heading">
+                            <span>{t(statLabels[key])}</span>
+                            <strong>{player.stats[key]}</strong>
+                        </div>
+                        <StatProgressBar
+                            label={t(statLabels[key])}
+                            progress={player.statProgress?.[key]}
+                        />
                     </div>
                 ))}
             </div>
