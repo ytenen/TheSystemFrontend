@@ -171,6 +171,16 @@
     transform: rotate(90deg);
 }
 
+/* Rewards stay visible in collapsed and expanded states. */
+.daily-quest__reward-summary {
+    padding: 0 var(--space-lg) var(--space-md);
+    min-width: 0;
+}
+
+.daily-quest__reward-summary .quest-reward-tags {
+    flex-wrap: wrap;
+}
+
 /* =========================
    COLLAPSIBLE BODY
    ========================= */
@@ -456,6 +466,10 @@
 @media (max-width: 520px) {
     .daily-quest__toggle {
         padding: var(--space-md);
+    }
+
+    .daily-quest__reward-summary {
+        padding: 0 var(--space-md) var(--space-md);
     }
 
     .daily-quest__body-inner {
