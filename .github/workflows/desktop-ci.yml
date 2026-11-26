@@ -1,0 +1,32 @@
+name: Desktop CI (Tauri macOS)
+
+on:
+  pull_request:
+    branches: [dev]
+
+jobs:
+  macos-desktop:
+    runs-on: macos-15-arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+      - run: npm ci
+      - run: VITE_API_BASE_URL=http://localhost:8080 npm run build
+      - run: npm run lint
+      - run: npm test
+      - run: cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin --locked
+      - name: Build Apple Silicon app
+        run: npm run desktop:build -- --bundles app
+        env:
+          VITE_API_BASE_URL: http://localhost:8080
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TheSystem-macos-aarch64
+          path: src-tauri/target/aarch64-apple-darwin/release/bundle/macos/TheSystem.app
+          if-no-files-found: error
