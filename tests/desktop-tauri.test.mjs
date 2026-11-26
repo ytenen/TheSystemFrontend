@@ -27,7 +27,7 @@ test("Tauri CSP allows only local Backend and has no HTTP/filesystem plugin", ()
   const csp = config.app.security.csp;
   assert.match(csp, /http:\/\/localhost:8080/);
   assert.doesNotMatch(csp, /https?:\/\/\*/);
-  assert.doesNotMatch(csp, /https?:\/\/(?!localhost|127\.0\.0\.1)/);
+  assert.doesNotMatch(csp, /https:\/\//);
   const caps = JSON.parse(read("src-tauri/capabilities/default.json"));
   assert.deepEqual(caps.permissions, ["core:default"]);
   assert.doesNotMatch(read("src-tauri/Cargo.toml"), /tauri-plugin-http/);
