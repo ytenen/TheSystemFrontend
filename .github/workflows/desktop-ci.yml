@@ -6,7 +6,7 @@ on:
 
 jobs:
   macos-desktop:
-    runs-on: macos-15-arm64
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
