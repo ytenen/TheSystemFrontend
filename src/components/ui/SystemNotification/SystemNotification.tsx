@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import "./SystemNotification.css";
 import { useI18n } from "../../../i18n/i18n";
@@ -21,19 +21,24 @@ export function SystemNotification({
                                        onClose,
                                    }: SystemNotificationProps) {
     const { t } = useI18n();
+    const onCloseRef = useRef(onClose);
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+
     useEffect(() => {
         if (!open) {
             return;
         }
 
         const timer = window.setTimeout(() => {
-            onClose();
+            onCloseRef.current();
         }, duration);
 
         return () => {
             window.clearTimeout(timer);
         };
-    }, [open, duration, onClose]);
+    }, [open, duration]);
 
     return (
         <div
