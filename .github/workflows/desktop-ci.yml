@@ -25,8 +25,12 @@ jobs:
         run: npm run desktop:build -- --bundles app
         env:
           VITE_API_BASE_URL: http://localhost:8080
+      - name: Archive app preserving macOS bundle permissions
+        run: |
+          cd src-tauri/target/aarch64-apple-darwin/release/bundle/macos
+          ditto -c -k --sequesterRsrc --keepParent TheSystem.app TheSystem-macos-aarch64.zip
       - uses: actions/upload-artifact@v4
         with:
           name: TheSystem-macos-aarch64
-          path: src-tauri/target/aarch64-apple-darwin/release/bundle/macos/TheSystem.app
+          path: src-tauri/target/aarch64-apple-darwin/release/bundle/macos/TheSystem-macos-aarch64.zip
           if-no-files-found: error
